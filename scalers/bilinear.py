@@ -1,12 +1,36 @@
 #!/usr/bin/env python3
 
-"""Bilinear image interpolation and rescaling."""
+"""Bilinear image interpolation and rescaling in pure Python.
+
+Overview
+--------
+
+Current file contains the following main functions:
+
+- **``blin``**: reading single pixel from image 3D list at float (x, y) coordinates,
+interpolated using bilinear interpolation;
+
+- **``scale``**: reading whole image 3D list, and rescaling it using
+bilinear interpolation.
+
+----
+Main site: `The Toad's Slimy Mudhole`_
+
+.. _The Toad's Slimy Mudhole: https://dnyarri.github.io
+
+Current project Git repositories: `@Github`_, `@Gitflic`_.
+
+.. _@Github: https://github.com/Dnyarri/imin
+
+.. _@Gitflic: https://gitflic.ru/project/dnyarri/imin
+
+"""
 
 __author__ = 'Ilya Razmanov'
-__copyright__ = '(c) 2024-2025 Ilya Razmanov'
+__copyright__ = '(c) 2024-2026 Ilya Razmanov'
 __credits__ = 'Ilya Razmanov'
 __license__ = 'unlicense'
-__version__ = '25.11.25.19'
+__version__ = '26.1.13.15'
 __maintainer__ = 'Ilya Razmanov'
 __email__ = 'ilyarazmanov@gmail.com'
 __status__ = 'Development'

@@ -13,17 +13,17 @@ Main site: `The Toad's Slimy Mudhole`_
 
 Git repositories: `@Github`_, `@Gitflic`_.
 
-.. _@Github: https://github.com/Dnyarri/
+.. _@Github: https://github.com/Dnyarri/imin
 
-.. _@Gitflic: https://gitflic.ru/user/dnyarri
+.. _@Gitflic: https://gitflic.ru/project/dnyarri/imin
 
 """
 
 __author__ = 'Ilya Razmanov'
-__copyright__ = '(c) 2025 Ilya Razmanov'
+__copyright__ = '(c) 2025-2026 Ilya Razmanov'
 __credits__ = 'Ilya Razmanov'
 __license__ = 'unlicense'
-__version__ = '1.23.7.20'
+__version__ = '26.1.13.15'
 __maintainer__ = 'Ilya Razmanov'
 __email__ = 'ilyarazmanov@gmail.com'
 __status__ = 'Development'
