@@ -23,7 +23,7 @@ __author__ = 'Ilya Razmanov'
 __copyright__ = '(c) 2025-2026 Ilya Razmanov'
 __credits__ = 'Ilya Razmanov'
 __license__ = 'unlicense'
-__version__ = '26.1.13.15'
+__version__ = '26.1.15.7'
 __maintainer__ = 'Ilya Razmanov'
 __email__ = 'ilyarazmanov@gmail.com'
 __status__ = 'Development'
@@ -31,7 +31,7 @@ __status__ = 'Development'
 from copy import deepcopy
 from pathlib import Path
 from random import randbytes  # Used for random icon only
-from time import ctime  # Used to show file info only
+from time import ctime, time
 from tkinter import BooleanVar, Button, Checkbutton, Entry, Frame, IntVar, Label, Menu, Menubutton, OptionMenu, PhotoImage, StringVar, Tk
 from tkinter.filedialog import askopenfilename, asksaveasfilename
 from tkinter.messagebox import showinfo
@@ -266,7 +266,7 @@ def GetSource(event=None) -> None:
 def RunFilter(event=None) -> None:
     """Filter image, then preview result."""
 
-    global zoom_factor, view_src, is_filtered, is_saved, info_normal, color_mode_str
+    global zoom_factor, view_src, is_filtered, is_saved, info_normal, color_mode_str, timing
     global preview, preview_filtered
     global X, Y, Z, maxcolors, image3D, source_image3D, info
 
@@ -283,9 +283,13 @@ def RunFilter(event=None) -> None:
         │ Filtering image │
         └─────────────────┘ """
     if method == 'Bilinear':
+        start = time()
         image3D = bilinear.scale(source_image3D, XNEW, YNEW, edge=1)
+        timing = time() - start
     elif method == 'Barycentric':
+        start = time()
         image3D = barycentric.scale(source_image3D, XNEW, YNEW, edge=1)
+        timing = time() - start
 
     Y = len(source_image3D)
     X = len(source_image3D[0])
@@ -533,6 +537,7 @@ def incWheel(event) -> None:
 zoom_factor = 0
 view_src = True
 is_filtered = False
+timing = None
 product_name = '[Em|De]biggener'
 
 sortir = Tk()
@@ -560,8 +565,13 @@ butt = {
     'activebackground': '#E5F1FB',
 }
 
+# ↓ Info string
 info_string = Label(sortir, text=info_normal['txt'], font=('courier', 7), foreground=info_normal['fg'], background=info_normal['bg'], relief='groove')
 info_string.pack(side='bottom', padx=0, pady=(2, 0), fill='both')
+# ↓ Info string binding for displaying scaler execution time
+info_string.bind('<Enter>', lambda event=None: info_string.config(text=f'Run time: {timing}'))
+info_string.bind('<Leave>', lambda event=None: UINormal())
+info_string.bind('<Control-Button-1>', lambda event=None: [sortir.clipboard_clear(), sortir.clipboard_append(f'{timing}\n')])
 
 # ↓ initial sortir binding, before image load
 sortir.bind_all('<Button-3>', ShowMenu)  # Popup menu
