@@ -23,7 +23,7 @@ __author__ = 'Ilya Razmanov'
 __copyright__ = '(c) 2025-2026 Ilya Razmanov'
 __credits__ = 'Ilya Razmanov'
 __license__ = 'unlicense'
-__version__ = '26.1.15.7'
+__version__ = '26.1.19.7'
 __maintainer__ = 'Ilya Razmanov'
 __email__ = 'ilyarazmanov@gmail.com'
 __status__ = 'Development'
@@ -547,11 +547,6 @@ sortir.title(product_name)
 
 validate_entry = sortir.register(valiDig)
 
-# ↓ Info statuses dictionaries
-info_normal = {'txt': f'{product_name} {__version__}', 'fg': 'grey', 'bg': 'grey90'}
-info_busy = {'txt': 'BUSY, PLEASE WAIT', 'fg': 'red', 'bg': 'yellow'}
-color_mode_str = ' '
-
 # ↓ Buttons dictionaries
 butt = {
     'font': ('helvetica', 12),
@@ -564,6 +559,11 @@ butt = {
     'activeforeground': 'dark blue',
     'activebackground': '#E5F1FB',
 }
+
+# ↓ Info statuses dictionaries
+info_normal = {'txt': f'{product_name} {__version__}', 'fg': 'grey', 'bg': 'grey90'}
+info_busy = {'txt': 'BUSY, PLEASE WAIT', 'fg': 'red', 'bg': 'yellow'}
+color_mode_str = ' '
 
 # ↓ Info string
 info_string = Label(sortir, text=info_normal['txt'], font=('courier', 7), foreground=info_normal['fg'], background=info_normal['bg'], relief='groove')
@@ -660,7 +660,14 @@ ini_x.trace_add('write', lambda *args: syncXY())
 ini_y.trace_add('write', lambda *args: syncYX())
 
 method_str = StringVar(value='Bilinear')
-method_menu = OptionMenu(frame_top, method_str, *['Bilinear', 'Barycentric'])
+method_menu = OptionMenu(
+    frame_top,
+    method_str,
+    *[
+        'Bilinear',
+        'Barycentric',
+    ],
+)
 method_menu.grid(row=0, column=col)
 col += 1
 method_menu.configure(indicatoron=True, font=('helvetica', 12), width=10, anchor='e', relief='groove', activebackground='#E5F1FB', state='disabled')
