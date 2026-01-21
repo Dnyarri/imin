@@ -30,7 +30,7 @@ __author__ = 'Ilya Razmanov'
 __copyright__ = '(c) 2024-2026 Ilya Razmanov'
 __credits__ = 'Ilya Razmanov'
 __license__ = 'unlicense'
-__version__ = '26.1.13.15'
+__version__ = '26.1.21.5'
 __maintainer__ = 'Ilya Razmanov'
 __email__ = 'ilyarazmanov@gmail.com'
 __status__ = 'Development'
@@ -188,8 +188,8 @@ def scale(source_image: list[list[list[int]]], XNEW: int, YNEW: int, edge: int) 
         """Local version of pixel(x, y) with hardcoded source list name, good for caching."""
         return pixel(source_image, x, y, edge)
 
-    # ↓ Caching in y-direction works only on tiny images, which are fast to process anyway,
-    #   so in most cases caching columns is just a waste of CPU time for dict LRU handling.
+    # ↓ Caching in y-direction works poorly, yet works; maxsize is set for X=1024 px.
+    @lru_cache(maxsize=1024)
     def _pixel_2(x: int, y: int, edge: int) -> list[int]:
         """Local version of pixel(x, y) with hardcoded source list name."""
         return pixel(intermediate_image, x, y, edge)
@@ -263,6 +263,7 @@ def scale(source_image: list[list[list[int]]], XNEW: int, YNEW: int, edge: int) 
         return intermediate_image  # if no rescaling occurs along Y
     result_image = [[_ylin(x, y_resize * y, edge) for x in range(XNEW)] for y in range(YNEW)]
     # print(_pixel_1.cache_info())
+    # print(_pixel_2.cache_info())
 
     return result_image
 
