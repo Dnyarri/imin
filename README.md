@@ -4,6 +4,10 @@
 
 Currently **imin** repository contains code for barycentric and bilinear image interpolation.
 
+[Bilinear image interpolation](https://en.wikipedia.org/wiki/Bilinear_interpolation) works by considering pixel as ■ square, and performing interpolation between four corners.
+
+Barycentric image interpolation, the most interesting part of the module, works by dividing ■ pixel square onto either ◤◢ or ◣◥ subtriangles, and performing interpolation within a triangle using [barycentric coordinates](https://en.wikipedia.org/wiki/Barycentric_coordinate_system).
+
 This branch, **"Functional"**, specifically, contain **imin** module version to be used as functions, not classes, and several shell applications to show the module in action.
 
 ## Content
@@ -24,3 +28,13 @@ Shell applications:
 > Shell programs GUI is rather clumsy, yet provides some suitable features. For example, with mouse over numerical input fields you can use mouse wheel to gradually increment/decrement input values. Mouse over info string below image shows you last filter execution time (and Ctrl+Click on it places this value to clipboard. This was made to simplify speed tests during optimization).
 
 Shell programs GUI provides whole set of interpolation options; however, they do not always work as one may expect. For example, "Wrap around" processing for seamless textures in "Distorter" works for wave deformation, but makes seams for skewing. This is caused by skewing nature: opposite image borders slide against each other, thus breaking seamless borders match. Please remember that these shell programs are made for module testing and illustration purposes, and not as a complete replacement for Photoshop or GIMP.
+
+## Links
+
+[Dnyarri website - other Python freeware](https://dnyarri.github.io "The Toad's Slimy Mudhole") by the same author.
+
+[ImIn page](https://dnyarri.github.io/imin.html)
+
+[ImIn source at Github](https://github.com/Dnyarri/imin)
+
+[ImIn source at Gitflic mirror](https://gitflic.ru/project/dnyarri/imin)
