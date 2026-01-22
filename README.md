@@ -14,15 +14,15 @@ This branch, **"Functional"**, specifically, contain **imin** module version to 
 
 Module **imin**:
 
-- `__init__.py`: This is not just an init file. Actually, it contains all code required to read image pixel at float coordinates, interpolated from surrounding pixels using either barycentric or bilinear method. If reading image pixels is all you need, you may copy `__init__.py` file alone and use it for your applications. Remember that I don't give a care to legal stuff, so you can use my code for free, completely or partially, and modify at will.
-- `displace.py`: General purpose image displacement using either barycentric or bilinear interpolation. Exact type of displacement is controlled by fx(x, y) and fy(x, y) functions, given to `displace` as arguments.
-- `rescale.py`: Image rescaling. Obviously, image rescaling is a specific case of displacement, and can be done with displacer, but specific case of rescaling gives a chance to add some specific speed optimization; therefore a separate code was created.
+- **`__init__.py`**: This is not just an init file. Actually, it contains all code required to read image pixel at float coordinates, interpolated from surrounding pixels using either barycentric or bilinear method. If reading image pixels is all you need, you may copy `__init__.py` file alone and use it for your applications. Remember that I don't give a care to legal stuff, so you can use my code for free, completely or partially, and modify at will.
+- **`displace.py`**: General purpose image displacement using either barycentric or bilinear interpolation. Exact type of displacement is controlled by fx(x, y) and fy(x, y) functions, given to `displace` as arguments.
+- **`rescale.py`**: Image rescaling. Obviously, image rescaling is a specific case of displacement, and can be done with displacer, but specific case of rescaling gives a chance to add some specific speed optimization; therefore a separate code was created.
 
 Shell applications:
 
-- `distorter.py`: the main part of demo. Distorter provides examples of general purpose image displacer (`displace.py`) usage. Currently demo includes only two functions: linear skewing and wave-like deformation with sine function;
-- `mdbiggener.py`: image rescaler; provides a demo for `rescale.py`;
-- `revolver.py`: image rotation program. Based entirely on `displace.py`, and separated as specific program just because rotation GUI should take only one argument (i.e. angle), while displacement currently takes two (one for x and other for y). To avoid making a program with only half of GUI being functional, this particular example program was created.
+- **`distorter.py`**: the main part of demo. Distorter provides examples of general purpose image displacer (`displace.py`) usage. Currently demo includes only two functions: linear skewing and wave-like deformation with sine function;
+- **`mdbiggener.py`**: image rescaler; provides a demo for `rescale.py`;
+- **`revolver.py`**: image rotation program. Based entirely on `displace.py`, and separated as specific program just because rotation GUI should take only one argument (i.e. angle), while displacement currently takes two (one for x and other for y). To avoid making a program with only half of GUI being functional, this particular example program was created.
 
 > [!NOTE]
 > Shell programs GUI is rather clumsy, yet provides some suitable features. For example, with mouse over numerical input fields you can use mouse wheel to gradually increment/decrement input values. Mouse over info string below image shows you last filter execution time (and Ctrl+Click on it places this value to clipboard. This was made to simplify speed tests during optimization).
@@ -31,10 +31,10 @@ Shell programs GUI provides whole set of interpolation options; however, they do
 
 ## Links
 
-[Dnyarri website - other Python freeware](https://dnyarri.github.io "The Toad's Slimy Mudhole") by the same author.
+[Barycentric and bilinear image interpolation page](https://dnyarri.github.io/imin.html "Barycentric and bilinear image interpolation in pure Python - starting page")
 
-[ImIn page](https://dnyarri.github.io/imin.html)
+[Barycentric and bilinear image interpolation source at Github](https://github.com/Dnyarri/imin "Barycentric and bilinear image interpolation in pure Python - source code at Github")
 
-[ImIn source at Github](https://github.com/Dnyarri/imin)
+[Barycentric and bilinear image interpolation source at Gitflic mirror](https://gitflic.ru/project/dnyarri/imin "Barycentric and bilinear image interpolation in pure Python - source code at Github")
 
-[ImIn source at Gitflic mirror](https://gitflic.ru/project/dnyarri/imin)
+[Dnyarri website - more Python freeware](https://dnyarri.github.io "The Toad's Slimy Mudhole - Python freeware for POV-Ray and other 3D, Scale2x, Scale3x, Scale2xSFX, Scale2xSFX, PPM and PGM image support, bilinear and barycentric image interpolation, and batch processing") by the same author.
