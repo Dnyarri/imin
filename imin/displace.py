@@ -13,8 +13,8 @@ where
 i.e. origin is top left corner, channels order is LA or RGBA from 0 to top;
 - ``fx``: actual x coordinate to read as a function of formal x, y counters;
 - ``fy``: actual y coordinate to read as a function of formal x, y counters;
-- ``XNEW``: new image X size, pixels;
-- ``YNEW``: new image Y size, pixels;
+- ``XNEW``: ``result_image`` width, pixels;
+- ``YNEW``: ``result_image`` height, pixels;
 - ``edge``: edge extrapolation mode:
     - ``edge=1`` or ``edge='repeat'``: repeat edge, like Photoshop;
     - ``edge=2`` or ``edge='wrap'``: wrap around;
@@ -42,7 +42,7 @@ __author__ = 'Ilya Razmanov'
 __copyright__ = '(c) 2024-2026 Ilya Razmanov'
 __credits__ = 'Ilya Razmanov'
 __license__ = 'unlicense'
-__version__ = '26.1.21.7'
+__version__ = '26.1.24.6'
 __maintainer__ = 'Ilya Razmanov'
 __email__ = 'ilyarazmanov@gmail.com'
 __status__ = 'Development'
@@ -82,7 +82,7 @@ def _src(image3d: list[list[list[int]]], x: int | float, y: int | float, edge: i
 
 
 # ↓ Singe pass displacement, bilinear
-def bilinear(source_image: list[list[list[int]]], fx, fy, XNEW: int, YNEW: int, edge: int | str, **kwargs) -> list[list[list[int]]]:
+def bilinear(source_image: list[list[list[int]]], fx, fy, XNEW: int, YNEW: int, edge: int | str) -> list[list[list[int]]]:
     """Bilinear image displacement according to ``fx`` and ``fy`` functions.
 
     :param source_image: source image 3D list, coordinate system match Photoshop,
@@ -92,8 +92,8 @@ def bilinear(source_image: list[list[list[int]]], fx, fy, XNEW: int, YNEW: int, 
     :type fx: function
     :param fy: actual y coordinate to read as a function of formal x, y counters
     :type fy: function
-    :param int XNEW: new image X size, pixels;
-    :param int YNEW: new image Y size, pixels;
+    :param int XNEW: ``result_image`` width, pixels;
+    :param int YNEW: ``result_image`` height, pixels;
     :param int | str edge: edge extrapolation mode:
 
         - ``edge=1`` or ``edge='repeat'``: repeat edge, like Photoshop;
@@ -164,7 +164,7 @@ def bilinear(source_image: list[list[list[int]]], fx, fy, XNEW: int, YNEW: int, 
 
 
 # ↓ Singe pass displacement, barycentric
-def barycentric(source_image: list[list[list[int]]], fx, fy, XNEW: int, YNEW: int, edge: int | str, **kwargs) -> list[list[list[int]]]:
+def barycentric(source_image: list[list[list[int]]], fx, fy, XNEW: int, YNEW: int, edge: int | str) -> list[list[list[int]]]:
     """Barycentric image displacement according to ``fx`` and ``fy`` functions.
 
     :param source_image: source image 3D list, coordinate system match Photoshop,
@@ -174,8 +174,8 @@ def barycentric(source_image: list[list[list[int]]], fx, fy, XNEW: int, YNEW: in
     :type fx: function
     :param fy: actual y coordinate to read as a function of formal x, y counters
     :type fy: function
-    :param int XNEW: new image X size, pixels;
-    :param int YNEW: new image Y size, pixels;
+    :param int XNEW: ``result_image`` width, pixels;
+    :param int YNEW: ``result_image`` height, pixels;
     :param int | str edge: edge extrapolation mode:
 
         - ``edge=1`` or ``edge='repeat'``: repeat edge, like Photoshop;
@@ -277,7 +277,7 @@ def barycentric(source_image: list[list[list[int]]], fx, fy, XNEW: int, YNEW: in
 
 
 # ↓ Singe pass displacement, general
-def displace(source_image: list[list[list[int]]], fx, fy, XNEW: int, YNEW: int, edge: int | str = 0, method: int | str = 1, **kwargs) -> list[list[list[int]]]:
+def displace(source_image: list[list[list[int]]], fx, fy, XNEW: int, YNEW: int, edge: int | str = 0, method: int | str = 1) -> list[list[list[int]]]:
     """Image displacement according to ``fx`` and ``fy`` functions, using bilinear or barycentric interpolation depending on ``method``.
 
     :param source_image: source image 3D list, coordinate system match Photoshop,
@@ -287,8 +287,8 @@ def displace(source_image: list[list[list[int]]], fx, fy, XNEW: int, YNEW: int, 
     :type fx: function
     :param fy: actual y coordinate to read as a function of formal x, y counters
     :type fy: function
-    :param int XNEW: new image X size, pixels;
-    :param int YNEW: new image Y size, pixels;
+    :param int XNEW: ``result_image`` width, pixels;
+    :param int YNEW: ``result_image`` height, pixels;
     :param int | str edge: edge extrapolation mode:
 
         - ``edge=1`` or ``edge='repeat'``: repeat edge, like Photoshop;

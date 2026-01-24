@@ -23,7 +23,7 @@ __author__ = 'Ilya Razmanov'
 __copyright__ = '(c) 2025-2026 Ilya Razmanov'
 __credits__ = 'Ilya Razmanov'
 __license__ = 'unlicense'
-__version__ = '26.1.20.7'
+__version__ = '26.1.24.6'
 __maintainer__ = 'Ilya Razmanov'
 __email__ = 'ilyarazmanov@gmail.com'
 __status__ = 'Development'
@@ -269,10 +269,10 @@ def RunFilter(event=None) -> None:
     XNEW = int(abs(X * COS) + abs(Y * SIN))
     YNEW = int(abs(X * SIN) + abs(Y * COS))
 
-    def fx(x, y, **kwargs):
+    def fx(x, y):
         return ((x - XNEW / 2) * COS) - ((y - YNEW / 2) * SIN) + X / 2
 
-    def fy(x, y, **kwargs):
+    def fy(x, y):
         return ((x - XNEW / 2) * SIN) + ((y - YNEW / 2) * COS) + Y / 2
 
     # ↓ displacing

@@ -11,8 +11,8 @@ where
 
 - ``source_image``: source image 3D nested list; coordinate system match Photoshop,
 i.e. origin is top left corner, channels order is LA or RGBA from 0 to top;
-- ``XNEW``: new image X size, pixels;
-- ``YNEW``: new image Y size, pixels;
+- ``XNEW``: ``result_image`` width, pixels;
+- ``YNEW``: ``result_image`` height, pixels;
 - ``edge``: edge extrapolation mode:
     - ``edge=1`` or ``edge='repeat'``: repeat edge, like Photoshop;
     - ``edge=2`` or ``edge='wrap'``: wrap around;
@@ -40,7 +40,7 @@ __author__ = 'Ilya Razmanov'
 __copyright__ = '(c) 2024-2026 Ilya Razmanov'
 __credits__ = 'Ilya Razmanov'
 __license__ = 'unlicense'
-__version__ = '26.1.21.7'
+__version__ = '26.1.24.6'
 __maintainer__ = 'Ilya Razmanov'
 __email__ = 'ilyarazmanov@gmail.com'
 __status__ = 'Development'
@@ -85,8 +85,8 @@ def bilinear(source_image: list[list[list[int]]], XNEW: int, YNEW: int, edge: in
     :param source_image: source image 3D list, coordinate system match Photoshop,
     i.e. origin is top left corner, channels order LA or RGBA from bottom to top;
     :type source_image: list[list[list[int]]]
-    :param int XNEW: new image X size, pixels;
-    :param int YNEW: new image Y size, pixels;
+    :param int XNEW: ``result_image`` width, pixels;
+    :param int YNEW: ``result_image`` height, pixels;
     :param int | str edge: edge extrapolation mode:
 
         - ``edge=1`` or ``edge='repeat'``: repeat edge, like Photoshop;
@@ -196,8 +196,8 @@ def barycentric(source_image: list[list[list[int]]], XNEW: int, YNEW: int, edge:
     :param source_image: source image 3D list, coordinate system match Photoshop,
     i.e. origin is top left corner, channels order LA or RGBA from bottom to top;
     :type source_image: list[list[list[int]]]
-    :param int XNEW: new image X size, pixels;
-    :param int YNEW: new image Y size, pixels;
+    :param int XNEW: ``result_image`` width, pixels;
+    :param int YNEW: ``result_image`` height, pixels;
     :param int | str edge: edge extrapolation mode:
 
         - ``edge=1`` or ``edge='repeat'``: repeat edge, like Photoshop;
@@ -312,8 +312,8 @@ def rescale(source_image: list[list[list[int]]], XNEW: int, YNEW: int, edge: int
     :param source_image: source image 3D list, coordinate system match Photoshop,
     i.e. origin is top left corner, channels order is LA or RGBA from bottom to top;
     :type source_image: list[list[list[int]]]
-    :param int XNEW: new image X size, pixels;
-    :param int YNEW: new image Y size, pixels;
+    :param int XNEW: ``result_image`` width, pixels;
+    :param int YNEW: ``result_image`` height, pixels;
     :param int | str edge: edge extrapolation mode:
 
         - ``edge=1`` or ``edge='repeat'``: repeat edge, like Photoshop;

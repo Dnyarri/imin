@@ -23,7 +23,7 @@ __author__ = 'Ilya Razmanov'
 __copyright__ = '(c) 2026 Ilya Razmanov'
 __credits__ = 'Ilya Razmanov'
 __license__ = 'unlicense'
-__version__ = '26.1.20.7'
+__version__ = '26.1.24.6'
 __maintainer__ = 'Ilya Razmanov'
 __email__ = 'ilyarazmanov@gmail.com'
 __status__ = 'Development'
@@ -266,7 +266,7 @@ def RunFilter(event=None) -> None:
         │ displacement map. ╭──────────╯
         ╰───────────────────╯ """
 
-    if function_str.get() == 'func1':
+    if function_str.get() == 'Askew':  # Linear skew
         x_slope = math.tan(math.radians(45 * ini_x.get()))
         y_slope = math.tan(math.radians(45 * ini_y.get()))
 
@@ -277,21 +277,26 @@ def RunFilter(event=None) -> None:
             XNEW = int((X + abs(Y * x_slope)) / (1 - abs(x_slope * y_slope)))
             YNEW = int((Y + abs(X * y_slope)) / (1 - abs(x_slope * y_slope)))
 
-        def fx(x, y, **kwargs):
+        def fx(x, y):
             if x_slope < 0:
                 return x - (y - YNEW) * x_slope
             else:
                 return x - y * x_slope
 
-        def fy(x, y, **kwargs):
+        def fy(x, y):
             if y_slope < 0:
                 return y - (x - XNEW) * y_slope
             else:
                 return y - x * y_slope
 
-    if function_str.get() == 'func2':
+    if function_str.get() == 'Wavy':  # Sine wave
+        # ↓ Sine amplitude, controlled via GUI.
         x_strength = ini_x.get()
         y_strength = ini_y.get()
+        # ↓ Sine frequency, related to image size.
+        #   Should be controlled via GUI, but I will think about it tomorrow.
+        x_period = 1
+        y_period = 1
 
         if edge == 'wrap':
             XNEW = X
@@ -300,14 +305,14 @@ def RunFilter(event=None) -> None:
             XNEW = X + int(abs(x_strength) * X * 2)
             YNEW = Y + int(abs(y_strength) * Y * 2)
 
-        def fx(x, y, **kwargs):
-            return x + x_strength * (math.sin(math.tau * y / Y) * X - math.copysign(X, x_strength))
+        def fx(x, y):
+            return x + x_strength * (math.sin(x_period * math.tau * y / Y) * X - math.copysign(X, x_strength))
             # ↑ Sine output range is -1..1, input full circle is tau radians.
             #   .copysign is used to always offset whole thing to positive
             #   to avoid cutting edges off.
 
-        def fy(x, y, **kwargs):
-            return y + y_strength * (math.sin(math.tau * x / X) * Y - math.copysign(Y, y_strength))
+        def fy(x, y):
+            return y + y_strength * (math.sin(y_period * math.tau * x / X) * Y - math.copysign(Y, y_strength))
 
     # ↓ displacing
     start = time()
@@ -616,7 +621,7 @@ butt_file = Menubutton(
     state='normal',
     indicatoron=False,
 )
-butt_file.grid(row=0, column=col, sticky='nsew', padx=(0, 10), pady=0)
+butt_file.grid(row=0, column=col, sticky='nsew', padx=(0, 6), pady=0)
 col += 1
 
 # ↓ "File..." menu
@@ -697,17 +702,17 @@ in02.grid(row=0, column=col)
 col += 1
 
 # ↓ Distortion function
-function_str = StringVar(value='func1')
+function_str = StringVar(value='Askew')
 function_menu = OptionMenu(
     frame_top,
     function_str,
     *[
-        'func1',
-        'func2',
+        'Askew',
+        'Wavy',
     ],
 )
 function_menu.grid(row=0, column=col)
-function_menu.configure(indicatoron=True, font=('helvetica', 12), width=9, anchor='e', relief='groove', activebackground='#E5F1FB', state='disabled')
+function_menu.configure(indicatoron=True, font=('helvetica', 12), width=6, anchor='e', relief='groove', activebackground='#E5F1FB', state='disabled')
 function_menu['menu'].configure(font=function_menu['font'])
 
 col += 1
@@ -728,7 +733,7 @@ butt_filter = Button(
     state='disabled',
     command=RunFilter,
 )
-butt_filter.grid(row=0, column=col, sticky='nsew', padx=(10, 0), pady=0)
+butt_filter.grid(row=0, column=col, sticky='nsew', padx=(6, 0), pady=0)
 
 """ ┌──────────────────────────────┐
     │ Center frame (image preview) │
