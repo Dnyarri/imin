@@ -23,7 +23,7 @@ __author__ = 'Ilya Razmanov'
 __copyright__ = '(c) 2026 Ilya Razmanov'
 __credits__ = 'Ilya Razmanov'
 __license__ = 'unlicense'
-__version__ = '26.1.24.6'
+__version__ = '26.1.24.20'
 __maintainer__ = 'Ilya Razmanov'
 __email__ = 'ilyarazmanov@gmail.com'
 __status__ = 'Development'
@@ -533,18 +533,18 @@ def valiDig(new_value):
 
 
 def incWheel(event) -> None:
-    """Increment or decrement spinboxes by mouse wheel."""
+    """Increment or decrement spinboxes by mouse wheel, limiting to -1.0..1.0 range."""
 
     if event.widget == in01:
         if event.delta < 0:
-            ini_x.set(round(ini_x.get() - 0.01, 2))
+            ini_x.set(max(-1.0, round(ini_x.get() - 0.01, 2)))
         if event.delta > 0:
-            ini_x.set(round(ini_x.get() + 0.01, 2))
+            ini_x.set(min(1.0, round(ini_x.get() + 0.01, 2)))
     if event.widget == in02:
         if event.delta < 0:
-            ini_y.set(round(ini_y.get() - 0.01, 2))
+            ini_y.set(max(-1.0, round(ini_y.get() - 0.01, 2)))
         if event.delta > 0:
-            ini_y.set(round(ini_y.get() + 0.01, 2))
+            ini_y.set(min(1.0, round(ini_y.get() + 0.01, 2)))
 
 
 """ ╔═══════════╗

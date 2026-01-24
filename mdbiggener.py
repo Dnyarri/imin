@@ -23,7 +23,7 @@ __author__ = 'Ilya Razmanov'
 __copyright__ = '(c) 2025-2026 Ilya Razmanov'
 __credits__ = 'Ilya Razmanov'
 __license__ = 'unlicense'
-__version__ = '26.1.20.22'
+__version__ = '26.1.24.20'
 __maintainer__ = 'Ilya Razmanov'
 __email__ = 'ilyarazmanov@gmail.com'
 __status__ = 'Development'
@@ -514,7 +514,7 @@ def valiDig(new_value):
 
 
 def incWheel(event) -> None:
-    """Increment or decrement entries by mouse wheel."""
+    """Increment or decrement entries by mouse wheel, limiting to 2..2048 range."""
 
     if event.widget == in01:
         if event.delta < 0:

@@ -29,12 +29,16 @@ Shell applications:
 
 Shell programs GUI provides whole set of interpolation options; however, they do not always work as one may expect. For example, "Wrap around" processing for seamless textures in "Distorter" works for wave deformation, but makes seams for skewing. This is caused by skewing nature: opposite image borders slide against each other, thus breaking seamless borders match. Please remember that these shell programs are made for module testing and illustration purposes, and not as a complete replacement for Photoshop or GIMP.
 
+| Displacer GUI |
+| :---: |
+| [![Displacer GUI](https://dnyarri.github.io/imin/anigui.png "Displacer in action, barycentric image interpolation in wrap around mode")](https://dnyarri.github.io/imin.html) |
+
 ## Links
 
 [Barycentric and bilinear image interpolation page](https://dnyarri.github.io/imin.html "Barycentric and bilinear image interpolation in pure Python - starting page")
 
 [Barycentric and bilinear image interpolation source at Github](https://github.com/Dnyarri/imin "Barycentric and bilinear image interpolation in pure Python - source code at Github")
 
-[Barycentric and bilinear image interpolation source at Gitflic mirror](https://gitflic.ru/project/dnyarri/imin "Barycentric and bilinear image interpolation in pure Python - source code at Github")
+[Barycentric and bilinear image interpolation source at Gitflic mirror](https://gitflic.ru/project/dnyarri/imin "Barycentric and bilinear image interpolation in pure Python - source code at Gitflic")
 
 [Dnyarri website - more Python freeware](https://dnyarri.github.io "The Toad's Slimy Mudhole - Python freeware for POV-Ray and other 3D, Scale2x, Scale3x, Scale2xSFX, Scale2xSFX, PPM and PGM image support, bilinear and barycentric image interpolation, and batch processing") by the same author.
