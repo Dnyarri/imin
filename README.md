@@ -10,13 +10,33 @@ Barycentric image interpolation, the most interesting part of the module, works 
 
 This branch, **"Functional"**, specifically, contain **imin** module version to be used as functions, not classes, and several shell applications to show the module in action.
 
-## Content
+## Figures
+
+Some illustrations of difference between bilinear and barycentric interpolations are given below.
+
+| Source | Bilinear interpolation | Barycentric interpolation |
+| :---: | :---: | :---: |
+| ![Source image](https://dnyarri.github.io/imin/peak3.png "Source image 3x3 px") | ![Bilinear interpolation](https://dnyarri.github.io/imin/peak3bil.png "Bilinear upscale x20 times") | ![Barycentric interpolation](https://dnyarri.github.io/imin/peak3bar.png "Barycentric upscale x20 times") |
+| Source image 3x3 px | Bilinear upscale x20 times | Barycentric upscale x20 times |
+
+Above you can see an example of upscaling a single black pixel over white background 20 times. Surely 20 times figure is impractical, but gives a good illustration of interpolation methods.
+
+| Source | Bilinear interpolation | Barycentric interpolation |
+| :---: | :---: | :---: |
+| ![Source image](https://dnyarri.github.io/imin/eye16.png "Source image 22x16 px") | ![Bilinear interpolation](https://dnyarri.github.io/imin/eye16bil.png "Bilinear upscale x5 times") | ![Barycentric interpolation](https://dnyarri.github.io/imin/eye16bar.png "Barycentric upscale x5 times") |
+| Source image 22x16 px | Bilinear upscale x5 times | Barycentric upscale x5 times |
+
+Above you can see an example of upscaling a photo fragment 5 times. It seems that barycentric interpolation produces clearer general eye shape appearance, but turns single pixel pupil into rhomb, while bilinear interpolation simply blurs everything.
+
+## Files
 
 Module **imin**:
 
 - **`__init__.py`**: This is not just an init file. Actually, it contains all code required to read image pixel at float coordinates, interpolated from surrounding pixels using either barycentric or bilinear method. If reading image pixels is all you need, you may copy `__init__.py` file alone and use it for your applications. Remember that I don't give a care to legal stuff, so you can use my code for free, completely or partially, and modify at will.
 - **`displace.py`**: General purpose image displacement using either barycentric or bilinear interpolation. Exact type of displacement is controlled by fx(x, y) and fy(x, y) functions, given to `displace` as arguments.
 - **`rescale.py`**: Image rescaling. Obviously, image rescaling is a specific case of displacement, and can be done with displacer, but specific case of rescaling gives a chance to add some specific speed optimization; therefore a separate code was created.
+
+Instructions for developers on module usage and function input syntax are given in a rather prolific docstrings. Also, you may always take a look at the source of sample GUI shell applications, listed below.
 
 Shell applications:
 
@@ -35,10 +55,10 @@ Shell programs GUI provides whole set of interpolation options; however, they do
 
 ## Links
 
-[Barycentric and bilinear image interpolation page](https://dnyarri.github.io/imin.html "Barycentric and bilinear image interpolation in pure Python - starting page")
+[Barycentric and bilinear image interpolation explanatory page](https://dnyarri.github.io/imin.html "Barycentric and bilinear image interpolation in pure Python - explanatory page")
 
-[Barycentric and bilinear image interpolation source at Github](https://github.com/Dnyarri/imin "Barycentric and bilinear image interpolation in pure Python - source code at Github")
+[Barycentric and bilinear image interpolation source code at Github](https://github.com/Dnyarri/imin "Barycentric and bilinear image interpolation in pure Python - source code at Github")
 
-[Barycentric and bilinear image interpolation source at Gitflic mirror](https://gitflic.ru/project/dnyarri/imin "Barycentric and bilinear image interpolation in pure Python - source code at Gitflic")
+[Barycentric and bilinear image interpolation source code at Gitflic mirror](https://gitflic.ru/project/dnyarri/imin "Barycentric and bilinear image interpolation in pure Python - source code at Gitflic")
 
-[Dnyarri website - more Python freeware](https://dnyarri.github.io "The Toad's Slimy Mudhole - Python freeware for POV-Ray and other 3D, Scale2x, Scale3x, Scale2xSFX, Scale2xSFX, PPM and PGM image support, bilinear and barycentric image interpolation, and batch processing") by the same author.
+[Dnyarri website - more Python freeware for image processing and 3D](https://dnyarri.github.io "The Toad's Slimy Mudhole - Python freeware for POV-Ray and other 3D, Scale2x, Scale3x, Scale2xSFX, Scale2xSFX, PPM and PGM image support, bilinear and barycentric image interpolation, and batch processing") by the same author.
