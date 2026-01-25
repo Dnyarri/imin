@@ -53,6 +53,13 @@ Shell programs GUI provides whole set of interpolation options; however, they do
 | :---: |
 | [![Displacer GUI](https://dnyarri.github.io/imin/anigui.png "Displacer in action, barycentric image interpolation in wrap around mode")](https://dnyarri.github.io/imin.html) |
 
+## Prerequisite and Dependencies
+
+1. [Python](https://www.python.org/ "CPython") 3.11 or above.
+2. [PyPNG](https://gitlab.com/drj11/pypng "Pure Python PNG format module"). Copy included into current img2mesh distribution.
+3. [PyPNM](https://pypi.org/project/PyPNM/ "Pure Python PPM and PGM format module"). Copy included into current img2mesh distribution.
+4. Tkinter. Normally included into standard CPython distribution.
+
 ## Links
 
 [Barycentric and bilinear image interpolation explanatory page](https://dnyarri.github.io/imin.html "Barycentric and bilinear image interpolation in pure Python - explanatory page")
@@ -61,4 +68,4 @@ Shell programs GUI provides whole set of interpolation options; however, they do
 
 [Barycentric and bilinear image interpolation source code at Gitflic mirror](https://gitflic.ru/project/dnyarri/imin "Barycentric and bilinear image interpolation in pure Python - source code at Gitflic")
 
-[Dnyarri website - more Python freeware for image processing and 3D](https://dnyarri.github.io "The Toad's Slimy Mudhole - Python freeware for POV-Ray and other 3D, Scale2x, Scale3x, Scale2xSFX, Scale2xSFX, PPM and PGM image support, bilinear and barycentric image interpolation, and batch processing") by the same author.
+[Dnyarri website - more Python freeware for image processing, 3D, and batch automation](https://dnyarri.github.io "The Toad's Slimy Mudhole - Python freeware for POV-Ray and other 3D, Scale2x, Scale3x, Scale2xSFX, Scale3xSFX, PPM and PGM image support, bilinear and barycentric image interpolation, and batch processing") by the same author.
