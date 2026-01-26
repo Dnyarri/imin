@@ -40,7 +40,7 @@ __author__ = 'Ilya Razmanov'
 __copyright__ = '(c) 2024-2026 Ilya Razmanov'
 __credits__ = 'Ilya Razmanov'
 __license__ = 'unlicense'
-__version__ = '26.1.24.6'
+__version__ = '26.1.26.6'
 __maintainer__ = 'Ilya Razmanov'
 __email__ = 'ilyarazmanov@gmail.com'
 __status__ = 'Development'
@@ -104,14 +104,13 @@ def bilinear(source_image: list[list[list[int]]], XNEW: int, YNEW: int, edge: in
 
     # ↓ Function was never FIR-optimized, but @lru_cache() for source rows reading
     #   partially compensate for this.
-    #   @lru_cache(maxsize=2) seem to be mostly sufficient.
     @lru_cache(maxsize=4)
     def _pixel_1(x: int, y: int, edge: int | str) -> list[int]:
         """Local version of _src(x, y) with hardcoded source list name, good for caching."""
         return _src(source_image, x, y, edge)
 
-    # ↓ Caching in y-direction works poorly, yet works; maxsize is set for X=1024 px.
-    @lru_cache(maxsize=1024)
+    # ↓ Caching in y-direction works poorly since comprehension works in x-direction,
+    #   therefore no caching used.
     def _pixel_2(x: int, y: int, edge: int | str) -> list[int]:
         """Local version of _src(x, y) with hardcoded source list name."""
         return _src(intermediate_image, x, y, edge)
@@ -185,7 +184,6 @@ def bilinear(source_image: list[list[list[int]]], XNEW: int, YNEW: int, edge: in
         return intermediate_image  # if no rescaling occurs along Y
     result_image = [[_ylin(x, y_resize * y, edge) for x in range(XNEW)] for y in range(YNEW)]
     # print(_pixel_1.cache_info())
-    # print(_pixel_2.cache_info())
 
     return result_image
 
