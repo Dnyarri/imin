@@ -17,6 +17,7 @@ i.e. origin is top left corner, channels order is LA or RGBA from 0 to top;
     - ``edge=1`` or ``edge='repeat'``: repeat edge, like Photoshop;
     - ``edge=2`` or ``edge='wrap'``: wrap around;
     - ``edge=``other: extrapolate with zeroes;
+
 - ``method``: image interpolation method:
     - ``method=1`` or ``method='bilinear'``: bilinear interpolation;
     - ``method=2`` or ``method='barycentric'``: barycentric interpolation.
@@ -40,7 +41,7 @@ __author__ = 'Ilya Razmanov'
 __copyright__ = '(c) 2024-2026 Ilya Razmanov'
 __credits__ = 'Ilya Razmanov'
 __license__ = 'unlicense'
-__version__ = '26.1.26.6'
+__version__ = '26.1.27.21'
 __maintainer__ = 'Ilya Razmanov'
 __email__ = 'ilyarazmanov@gmail.com'
 __status__ = 'Development'
@@ -50,31 +51,31 @@ from operator import mul
 
 
 # ↓ Pixel reading, local version, different edge modes, nearest neighbour
-def _src(image3d: list[list[list[int]]], x: int | float, y: int | float, edge: int | str = 1) -> list[int]:
+def _src(source_image: list[list[list[int]]], x: int | float, y: int | float, edge: int | str = 1) -> list[int]:
     """Getting whole pixel from image list, nearest neighbour interpolation,
     returns list[channel] for pixel(x, y)."""
 
     # ↓ Determining source image sizes.
-    Y = len(image3d)
-    X = len(image3d[0])
-    Z = len(image3d[0][0])
+    Y = len(source_image)
+    X = len(source_image[0])
+    Z = len(source_image[0][0])
 
     if edge == 1 or edge == 'repeat':
         # ↓ Repeat edge.
         cx = min((X - 1), max(0, int(x)))
         cy = min((Y - 1), max(0, int(y)))
-        pixelvalue = image3d[cy][cx]
+        pixelvalue = source_image[cy][cx]
     elif edge == 2 or edge == 'wrap':
         # ↓ Wrap around.
         cx = int(x) % X
         cy = int(y) % Y
-        pixelvalue = image3d[cy][cx]
+        pixelvalue = source_image[cy][cx]
     else:
         # ↓ Zeroes.
         if x < 0 or y < 0 or x > X - 1 or y > Y - 1:
             pixelvalue = [0] * Z
         else:
-            pixelvalue = image3d[int(y)][int(x)]
+            pixelvalue = source_image[int(y)][int(x)]
 
     return pixelvalue
 
@@ -304,7 +305,7 @@ def barycentric(source_image: list[list[list[int]]], XNEW: int, YNEW: int, edge:
 
 
 # ↓ Rescaling, general
-def rescale(source_image: list[list[list[int]]], XNEW: int, YNEW: int, edge: int | str = 0, method: int | str = 1, **kwargs) -> list[list[list[int]]]:
+def rescale(source_image: list[list[list[int]]], XNEW: int, YNEW: int, edge: int | str = 0, method: int | str = 1) -> list[list[list[int]]]:
     """Image rescaling, using bilinear or barycentric interpolation depending on ``method``.
 
     :param source_image: source image 3D list, coordinate system match Photoshop,

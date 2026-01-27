@@ -1,26 +1,27 @@
-"""Reading image pixel, interpolated in one of various variable ways.
+"""Reading single image pixel, interpolated either bilinearly or barycentrically.
 
 Usage
 -----
 
 ::
 
-    pixelvalue = pixel(image3d, x, y, edge, method)
+    pixelvalue = pixel(source_image, x, y, edge, method)
 
 where
 
-- `image3d`: source image 3D nested list; coordinate system match Photoshop,
+- ``source_image``: source image 3D nested list; coordinate system match Photoshop,
 i.e. origin is top left corner, channels order is LA or RGBA from 0 to top;
-- `x`: x coordinate of pixel being read;
-- `y`: y coordinate of pixel being read;
-- `edge`: edge extrapolation mode:
-    - `edge=1` or `edge='repeat'`: repeat edge, like Photoshop;
-    - `edge=2` or `edge='wrap'`;
-    - `edge=`other: extrapolate with zeroes;
-- `method`: pixel interpolation method:
-    - `method=0` or `method='nearest'`: nearest neighbour interpolation;
-    - `method=1` or `method='bilinear'`: bilinear interpolation;
-    - `method=2` or `method='barycentric'`: barycentric interpolation.
+- ``x``: x coordinate of pixel being read;
+- ``y``: y coordinate of pixel being read;
+- ``edge``: edge extrapolation mode:
+    - ``edge=1`` or ``edge='repeat'``: repeat edge, like Photoshop;
+    - ``edge=2`` or ``edge='wrap'``;
+    - ``edge=``other: extrapolate with zeroes;
+
+- ``method``: pixel interpolation method:
+    - ``method=0`` or ``method='nearest'``: nearest neighbour interpolation;
+    - ``method=1`` or ``method='bilinear'``: bilinear interpolation;
+    - ``method=2`` or ``method='barycentric'``: barycentric interpolation.
 
 Return pixel value as list[int] of channel values.
 
@@ -41,7 +42,7 @@ __author__ = 'Ilya Razmanov'
 __copyright__ = '(c) 2023-2026 Ilya Razmanov'
 __credits__ = 'Ilya Razmanov'
 __license__ = 'unlicense'
-__version__ = '26.1.19.21'
+__version__ = '26.1.27.21'
 __maintainer__ = 'Ilya Razmanov'
 __email__ = 'ilyarazmanov@gmail.com'
 __status__ = 'Development'
@@ -50,13 +51,13 @@ from operator import mul
 
 
 # ↓ Pixel reading, different edge modes, nearest neighbour
-def src(image3d: list[list[list[int]]], x: int | float, y: int | float, edge: int | str = 1) -> list[int]:
+def src(source_image: list[list[list[int]]], x: int | float, y: int | float, edge: int | str = 1) -> list[int]:
     """Getting whole pixel from image list, nearest neighbour interpolation,
     returns list[channel] for pixel(x, y).
 
-    :param image3d: source image 3D list, coordinate system match Photoshop,
+    :param source_image: source image 3D list, coordinate system match Photoshop,
     i.e. origin is top left corner, channels order is LA or RGBA from bottom to top;
-    :type image3d: list[list[list[int]]]
+    :type source_image: list[list[list[int]]]
     :param int x: x coordinate of pixel being read;
     :param int y: y coordinate of pixel being read;
     :param int | str edge: edge extrapolation mode:
@@ -70,37 +71,37 @@ def src(image3d: list[list[list[int]]], x: int | float, y: int | float, edge: in
     """
 
     # ↓ Determining source image sizes.
-    Y = len(image3d)
-    X = len(image3d[0])
-    Z = len(image3d[0][0])
+    Y = len(source_image)
+    X = len(source_image[0])
+    Z = len(source_image[0][0])
 
     if edge == 1 or edge == 'repeat':
         # ↓ Repeat edge.
         cx = min((X - 1), max(0, int(x)))
         cy = min((Y - 1), max(0, int(y)))
-        pixelvalue = image3d[cy][cx]
+        pixelvalue = source_image[cy][cx]
     elif edge == 2 or edge == 'wrap':
         # ↓ Wrap around.
         cx = int(x) % X
         cy = int(y) % Y
-        pixelvalue = image3d[cy][cx]
+        pixelvalue = source_image[cy][cx]
     else:
         # ↓ Zeroes.
         if x < 0 or y < 0 or x > X - 1 or y > Y - 1:
             pixelvalue = [0] * Z
         else:
-            pixelvalue = image3d[int(y)][int(x)]
+            pixelvalue = source_image[int(y)][int(x)]
 
     return pixelvalue
 
 
 # ↓ Interpolated pixel reading, bilinear
-def blin(image3d: list[list[list[int]]], x: float, y: float, edge: int | str) -> list[int]:
+def blin(source_image: list[list[list[int]]], x: float, y: float, edge: int | str) -> list[int]:
     """Returns bilinearly interpolated pixel(x, y).
 
-    :param image3d: source image 3D list, coordinate system match Photoshop,
+    :param source_image: source image 3D list, coordinate system match Photoshop,
     i.e. origin is top left corner, channels order is LA or RGBA from bottom to top;
-    :type image3d: list[list[list[int]]]
+    :type source_image: list[list[list[int]]]
     :param float x: x coordinate of pixel being read;
     :param float y: y coordinate of pixel being read;
     :param int | str edge: edge extrapolation mode:
@@ -117,9 +118,9 @@ def blin(image3d: list[list[list[int]]], x: float, y: float, edge: int | str) ->
         return int(a + b + c + d)
 
     # ↓ Determining source image sizes.
-    #   Y = len(image3d)
-    #   X = len(image3d[0])
-    Z = len(image3d[0][0])
+    #   Y = len(source_image)
+    #   X = len(source_image[0])
+    Z = len(source_image[0][0])
 
     """ Square corners are enumerated according to scheme below:
 
@@ -146,7 +147,7 @@ def blin(image3d: list[list[list[int]]], x: float, y: float, edge: int | str) ->
         y0 = int(y) - 1
     # ↓ In case of direct hit, no interpolation required
     if x == x0 and y == y0:
-        return src(image3d, x0, y0, edge)
+        return src(source_image, x0, y0, edge)
     # ↓ When direct hit misses, interpolation goes on
     x1 = x0 + 1
     y1 = y0 + 1
@@ -158,10 +159,10 @@ def blin(image3d: list[list[list[int]]], x: float, y: float, edge: int | str) ->
     wt11 = (((x - x0) * (y - y0)),) * Z
 
     # ↓ Reading corner pixels and scaling values according to weights above
-    norm00 = [*map(mul, src(image3d, x0, y0, edge), wt00)]
-    norm01 = [*map(mul, src(image3d, x0, y1, edge), wt01)]
-    norm10 = [*map(mul, src(image3d, x1, y0, edge), wt10)]
-    norm11 = [*map(mul, src(image3d, x1, y1, edge), wt11)]
+    norm00 = [*map(mul, src(source_image, x0, y0, edge), wt00)]
+    norm01 = [*map(mul, src(source_image, x0, y1, edge), wt01)]
+    norm10 = [*map(mul, src(source_image, x1, y0, edge), wt10)]
+    norm11 = [*map(mul, src(source_image, x1, y1, edge), wt11)]
 
     # ↓ Adding up pixels by channels
     pixelvalue = [*map(_intaddup, norm00, norm01, norm10, norm11)]
@@ -170,12 +171,12 @@ def blin(image3d: list[list[list[int]]], x: float, y: float, edge: int | str) ->
 
 
 # ↓ Interpolated pixel reading, barycentric
-def baryc(image3d: list[list[list[int]]], x: float, y: float, edge: int | str) -> list[int]:
+def baryc(source_image: list[list[list[int]]], x: float, y: float, edge: int | str) -> list[int]:
     """Returns barycentrically interpolated pixel(x, y).
 
-    :param image3d: source image 3D list, coordinate system match Photoshop,
+    :param source_image: source image 3D list, coordinate system match Photoshop,
     i.e. origin is top left corner, channels order is LA or RGBA from bottom to top;
-    :type image3d: list[list[list[int]]]
+    :type source_image: list[list[list[int]]]
     :param float x: x coordinate of pixel being read;
     :param float y: y coordinate of pixel being read;
     :param int | str edge: edge extrapolation mode:
@@ -192,9 +193,9 @@ def baryc(image3d: list[list[list[int]]], x: float, y: float, edge: int | str) -
         return int(a + b + c)
 
     # ↓ Determining source image sizes.
-    #   Y = len(image3d)
-    #   X = len(image3d[0])
-    Z = len(image3d[0][0])
+    #   Y = len(source_image)
+    #   X = len(source_image[0])
+    Z = len(source_image[0][0])
 
     # ↓ Number of color channels, alpha excluded.
     Z_COLOR = Z if Z == 1 or Z == 3 else min(Z - 1, 3)
@@ -234,14 +235,14 @@ def baryc(image3d: list[list[list[int]]], x: float, y: float, edge: int | str) -
     y4 = y3
 
     # ↓ Corners pixels
-    p1 = src(image3d, x1, y1, edge)
+    p1 = src(source_image, x1, y1, edge)
     # ↓ In case of direct hit, no interpolation required
     if x == x1 and y == y1:
         return p1
     # ↓ When direct hit misses, interpolation goes on
-    p2 = src(image3d, x2, y2, edge)
-    p3 = src(image3d, x3, y3, edge)
-    p4 = src(image3d, x4, y4, edge)
+    p2 = src(source_image, x2, y2, edge)
+    p3 = src(source_image, x3, y3, edge)
+    p4 = src(source_image, x4, y4, edge)
 
     """ Now going to choose the diagonal for 2×2 pixel square folding based on
         comparing differences between pixels in 🡦 and 🡧 directions.
@@ -309,13 +310,13 @@ def baryc(image3d: list[list[list[int]]], x: float, y: float, edge: int | str) -
 
 
 # ↓ Interpolated pixel reading, general
-def pixel(image3d: list[list[list[int]]], x: float, y: float, edge: int | str = 1, method: int | str = 1) -> list[int]:
+def pixel(source_image: list[list[list[int]]], x: float, y: float, edge: int | str = 1, method: int | str = 1) -> list[int]:
     """Configurable method of reading interpolated pixel,
     returns list[channel] for pixel(x, y).
 
-    :param image3d: source image 3D list, coordinate system match Photoshop,
+    :param source_image: source image 3D list, coordinate system match Photoshop,
     i.e. origin is top left corner, channels order is LA or RGBA from bottom to top;
-    :type image3d: list[list[list[int]]]
+    :type source_image: list[list[list[int]]]
     :param float x: x coordinate of pixel being read;
     :param float y: y coordinate of pixel being read;
     :param int | str edge: edge extrapolation mode:
@@ -334,11 +335,10 @@ def pixel(image3d: list[list[list[int]]], x: float, y: float, edge: int | str = 
     """
 
     if method == 1 or method == 'bilinear':
-        return blin(image3d, x, y, edge)
+        return blin(source_image, x, y, edge)
     elif method == 2 or method == 'barycentric':
-        return baryc(image3d, x, y, edge)
+        return baryc(source_image, x, y, edge)
     elif method == 0 or method == 'nearest':
-        return src(image3d, x, y, edge)
+        return src(source_image, x, y, edge)
     else:
         raise ValueError('Allowed methods are 0, 1, 2')
-# ↑ General interpolation end
