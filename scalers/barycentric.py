@@ -39,13 +39,13 @@ from functools import lru_cache
 from operator import mul
 
 
-def pixel(image3d: list[list[list[int]]], x: int | float, y: int | float, edge: int = 1) -> list[int]:
+def pixel(source_image: list[list[list[int]]], x: int | float, y: int | float, edge: int = 1) -> list[int]:
     """Getting whole pixel from image list, nearest neighbour interpolation,
     returns list[channel] for pixel(x, y).
 
-    :param image3d: source image 3D list, coordinate system match Photoshop,
+    :param source_image: source image 3D list, coordinate system match Photoshop,
     i.e. origin is top left corner, channels order LA or RGBA from bottom to top;
-    :type image3d: list[list[list[int]]]
+    :type source_image: list[list[list[int]]]
     :param int or float x: x coordinate of pixel being read;
     :param int or float y: y coordinate of pixel being read;
     :param int edge: edge extrapolation mode:
@@ -59,36 +59,36 @@ def pixel(image3d: list[list[list[int]]], x: int | float, y: int | float, edge: 
     """
 
     # ↓ Determining source image sizes.
-    Y = len(image3d)
-    X = len(image3d[0])
-    Z = len(image3d[0][0])
+    Y = len(source_image)
+    X = len(source_image[0])
+    Z = len(source_image[0][0])
 
     if edge == 1:
         # ↓ Repeat edge.
         cx = min((X - 1), max(0, int(x)))
         cy = min((Y - 1), max(0, int(y)))
-        pixelvalue = image3d[cy][cx]
+        pixelvalue = source_image[cy][cx]
     elif edge == 2:
         # ↓ Wrap around.
         cx = int(x) % X
         cy = int(y) % Y
-        pixelvalue = image3d[cy][cx]
+        pixelvalue = source_image[cy][cx]
     else:
         # ↓ Zeroes. Fortunately A=0 correspond to transparent.
         if x < 0 or y < 0 or x > X - 1 or y > Y - 1:
             pixelvalue = [0] * Z
         else:
-            pixelvalue = image3d[int(y)][int(x)]
+            pixelvalue = source_image[int(y)][int(x)]
 
     return pixelvalue
 
 
-def baryc(image3d: list[list[list[int]]], x: float, y: float, edge: int) -> list[int]:
+def baryc(source_image: list[list[list[int]]], x: float, y: float, edge: int) -> list[int]:
     """Returns barycentrically interpolated pixel(x, y).
 
-    :param image3d: source image 3D list, coordinate system match Photoshop,
+    :param source_image: source image 3D list, coordinate system match Photoshop,
     i.e. origin is top left corner, channels order LA or RGBA from bottom to top;
-    :type image3d: list[list[list[int]]]
+    :type source_image: list[list[list[int]]]
     :param float x: x coordinate of pixel being read;
     :param float y: y coordinate of pixel being read;
     :param int edge: edge extrapolation mode:
@@ -105,9 +105,9 @@ def baryc(image3d: list[list[list[int]]], x: float, y: float, edge: int) -> list
         return int(a + b + c)
 
     # ↓ Determining source image sizes.
-    #   Y = len(image3d)
-    #   X = len(image3d[0])
-    Z = len(image3d[0][0])
+    #   Y = len(source_image)
+    #   X = len(source_image[0])
+    Z = len(source_image[0][0])
 
     # ↓ Number of color channels, alpha excluded.
     Z_COLOR = Z if Z == 1 or Z == 3 else min(Z - 1, 3)
@@ -147,14 +147,14 @@ def baryc(image3d: list[list[list[int]]], x: float, y: float, edge: int) -> list
     y4 = y3
 
     # ↓ Corners pixels
-    p1 = pixel(image3d, x1, y1, edge)
+    p1 = pixel(source_image, x1, y1, edge)
     # ↓ In case of direct hit, no interpolation required
     if x == x1 and y == y1:
         return p1
     # ↓ When direct hit misses, interpolation goes on
-    p2 = pixel(image3d, x2, y2, edge)
-    p3 = pixel(image3d, x3, y3, edge)
-    p4 = pixel(image3d, x4, y4, edge)
+    p2 = pixel(source_image, x2, y2, edge)
+    p3 = pixel(source_image, x3, y3, edge)
+    p4 = pixel(source_image, x4, y4, edge)
 
     """ Now going to choose the diagonal for 2×2 pixel square folding based on
         comparing differences between pixels in 🡦 and 🡧 directions.

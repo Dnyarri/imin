@@ -39,13 +39,13 @@ from functools import lru_cache
 from operator import mul
 
 
-def pixel(image3d: list[list[list[int]]], x: int | float, y: int | float, edge: int = 1) -> list[int]:
+def pixel(source_image: list[list[list[int]]], x: int | float, y: int | float, edge: int = 1) -> list[int]:
     """Getting whole pixel from image list, nearest neighbour interpolation,
     returns list[channel] for pixel(x, y).
 
-    :param image3d: source image 3D list, coordinate system match Photoshop,
+    :param source_image: source image 3D list, coordinate system match Photoshop,
     i.e. origin is top left corner, channels order LA or RGBA from bottom to top;
-    :type image3d: list[list[list[int]]]
+    :type source_image: list[list[list[int]]]
     :param int or float x: x coordinate of pixel being read;
     :param int or float y: y coordinate of pixel being read;
     :param int edge: edge extrapolation mode:
@@ -59,36 +59,36 @@ def pixel(image3d: list[list[list[int]]], x: int | float, y: int | float, edge: 
     """
 
     # ↓ Determining source image sizes.
-    Y = len(image3d)
-    X = len(image3d[0])
-    Z = len(image3d[0][0])
+    Y = len(source_image)
+    X = len(source_image[0])
+    Z = len(source_image[0][0])
 
     if edge == 1:
         # ↓ Repeat edge.
         cx = min((X - 1), max(0, int(x)))
         cy = min((Y - 1), max(0, int(y)))
-        pixelvalue = image3d[cy][cx]
+        pixelvalue = source_image[cy][cx]
     elif edge == 2:
         # ↓ Wrap around.
         cx = int(x) % X
         cy = int(y) % Y
-        pixelvalue = image3d[cy][cx]
+        pixelvalue = source_image[cy][cx]
     else:
         # ↓ Zeroes. Fortunately A=0 correspond to transparent.
         if x < 0 or y < 0 or x > X - 1 or y > Y - 1:
             pixelvalue = [0] * Z
         else:
-            pixelvalue = image3d[int(y)][int(x)]
+            pixelvalue = source_image[int(y)][int(x)]
 
     return pixelvalue
 
 
-def blin(image3d: list[list[list[int]]], x: float, y: float, edge: int) -> list[int]:
+def blin(source_image: list[list[list[int]]], x: float, y: float, edge: int) -> list[int]:
     """Returns bilinearly interpolated pixel(x, y).
 
-    :param image3d: source image 3D list, coordinate system match Photoshop,
+    :param source_image: source image 3D list, coordinate system match Photoshop,
     i.e. origin is top left corner, channels order LA or RGBA from bottom to top;
-    :type image3d: list[list[list[int]]]
+    :type source_image: list[list[list[int]]]
     :param float x: x coordinate of pixel being read;
     :param float y: y coordinate of pixel being read;
     :param int edge: edge extrapolation mode:
@@ -105,9 +105,9 @@ def blin(image3d: list[list[list[int]]], x: float, y: float, edge: int) -> list[
         return int(a + b + c + d)
 
     # ↓ Determining source image sizes.
-    #   Y = len(image3d)
-    #   X = len(image3d[0])
-    Z = len(image3d[0][0])
+    #   Y = len(source_image)
+    #   X = len(source_image[0])
+    Z = len(source_image[0][0])
 
     """ Square corners are enumerated according to scheme below:
 
@@ -134,7 +134,7 @@ def blin(image3d: list[list[list[int]]], x: float, y: float, edge: int) -> list[
         y0 = int(y) - 1
     # ↓ In case of direct hit, no interpolation required
     if x == x0 and y == y0:
-        return pixel(image3d, x0, y0, edge)
+        return pixel(source_image, x0, y0, edge)
     # ↓ When direct hit misses, interpolation goes on
     x1 = x0 + 1
     y1 = y0 + 1
@@ -146,10 +146,10 @@ def blin(image3d: list[list[list[int]]], x: float, y: float, edge: int) -> list[
     wt11 = (((x - x0) * (y - y0)),) * Z
 
     # ↓ Reading corner pixels and scaling values according to weights above
-    norm00 = [*map(mul, pixel(image3d, x0, y0, edge), wt00)]
-    norm01 = [*map(mul, pixel(image3d, x0, y1, edge), wt01)]
-    norm10 = [*map(mul, pixel(image3d, x1, y0, edge), wt10)]
-    norm11 = [*map(mul, pixel(image3d, x1, y1, edge), wt11)]
+    norm00 = [*map(mul, pixel(source_image, x0, y0, edge), wt00)]
+    norm01 = [*map(mul, pixel(source_image, x0, y1, edge), wt01)]
+    norm10 = [*map(mul, pixel(source_image, x1, y0, edge), wt10)]
+    norm11 = [*map(mul, pixel(source_image, x1, y1, edge), wt11)]
 
     # ↓ Adding up pixels by channels
     pixelvalue = [*map(_intaddup, norm00, norm01, norm10, norm11)]
