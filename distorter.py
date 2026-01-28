@@ -23,7 +23,7 @@ __author__ = 'Ilya Razmanov'
 __copyright__ = '(c) 2026 Ilya Razmanov'
 __credits__ = 'Ilya Razmanov'
 __license__ = 'unlicense'
-__version__ = '26.1.27.21'
+__version__ = '26.1.28.18'
 __maintainer__ = 'Ilya Razmanov'
 __email__ = 'ilyarazmanov@gmail.com'
 __status__ = 'Development'
@@ -356,7 +356,7 @@ def zoomOut(event=None) -> None:
     """Zoom preview out."""
 
     global zoom_factor, view_src, preview
-    zoom_factor = max(zoom_factor - 1, -4)  # min zoom 1/5
+    zoom_factor = max(zoom_factor - 1, -9)  # min zoom 1/10
 
     if view_src:
         ShowPreview(preview_src, 'Source')
@@ -365,7 +365,7 @@ def zoomOut(event=None) -> None:
 
     # ↓ reenabling +/- buttons
     butt_plus.config(state='normal', cursor='hand2')
-    if zoom_factor == -4:  # min zoom 1/5
+    if zoom_factor == -9:  # min zoom 1/10
         butt_minus.config(state='disabled', cursor='arrow')
     else:
         butt_minus.config(state='normal', cursor='hand2')

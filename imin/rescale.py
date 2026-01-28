@@ -41,7 +41,7 @@ __author__ = 'Ilya Razmanov'
 __copyright__ = '(c) 2024-2026 Ilya Razmanov'
 __credits__ = 'Ilya Razmanov'
 __license__ = 'unlicense'
-__version__ = '26.1.28.8'
+__version__ = '26.1.28.18'
 __maintainer__ = 'Ilya Razmanov'
 __email__ = 'ilyarazmanov@gmail.com'
 __status__ = 'Development'
@@ -51,7 +51,7 @@ from operator import mul
 
 
 # ↓ Pixel reading, local version, different edge modes, nearest neighbour
-def _src(source_image: list[list[list[int]]], x: int | float, y: int | float, edge: int | str = 1) -> list[int]:
+def _src(source_image: list[list[list[int]]], x: int | float, y: int | float, edge: int | str = 'repeat') -> list[int]:
     """Getting whole pixel from image list, nearest neighbour interpolation,
     returns list[channel] for pixel(x, y)."""
 
@@ -62,8 +62,8 @@ def _src(source_image: list[list[list[int]]], x: int | float, y: int | float, ed
 
     if edge == 1 or edge == 'repeat':
         # ↓ Repeat edge.
-        cx = min((X - 1), max(0, int(x)))
-        cy = min((Y - 1), max(0, int(y)))
+        cx = min(X - 1, max(0, int(x)))
+        cy = min(Y - 1, max(0, int(y)))
         pixelvalue = source_image[cy][cx]
     elif edge == 2 or edge == 'wrap':
         # ↓ Wrap around.
@@ -80,7 +80,7 @@ def _src(source_image: list[list[list[int]]], x: int | float, y: int | float, ed
     return pixelvalue
 
 
-def bilinear(source_image: list[list[list[int]]], XNEW: int, YNEW: int, edge: int | str) -> list[list[list[int]]]:
+def bilinear(source_image: list[list[list[int]]], XNEW: int, YNEW: int, edge: int | str = 'repeat') -> list[list[list[int]]]:
     """Bilinear image rescale, two subsequent 1D passes.
 
     :param source_image: source image 3D list, coordinate system match Photoshop,
@@ -133,15 +133,13 @@ def bilinear(source_image: list[list[list[int]]], XNEW: int, YNEW: int, edge: in
 
         w0 = x1 - x
         w1 = x - x0
-        wt0 = ((w0),) * Z
-        wt1 = ((w1),) * Z
+        wt0 = (w0,) * Z
+        wt1 = (w1,) * Z
         px0 = _pixel_1(x0, y, edge)
         px1 = _pixel_1(x1, y, edge)
         norm0 = [*map(mul, px0, wt0)]
         norm1 = [*map(mul, px1, wt1)]
-
         pixelvalue = [*map(_intaddup, norm0, norm1)]
-
         return pixelvalue
 
     def _ylin(x: int, y: float, edge: int | str) -> list[int]:
@@ -161,35 +159,33 @@ def bilinear(source_image: list[list[list[int]]], XNEW: int, YNEW: int, edge: in
 
         w0 = y1 - y
         w1 = y - y0
-        wt0 = ((w0),) * Z
-        wt1 = ((w1),) * Z
+        wt0 = (w0,) * Z
+        wt1 = (w1,) * Z
         px0 = _pixel_2(x, y0, edge)
         px1 = _pixel_2(x, y1, edge)
         norm0 = [*map(mul, px0, wt0)]
         norm1 = [*map(mul, px1, wt1)]
-
         pixelvalue = [*map(_intaddup, norm0, norm1)]
-
         return pixelvalue
 
-    # ↓ Two-pass rescaling
+    # ↓ Resize factor
     x_resize = (X - 1) / (XNEW - 1)
     y_resize = (Y - 1) / (YNEW - 1)
 
-    if XNEW == X:
-        intermediate_image = source_image  # if no rescaling occurs along X
+    # ↓ Two-pass rescaling
+    if XNEW == X:  # if no rescaling occurs along X
+        intermediate_image = source_image
     else:
         intermediate_image = [[_xlin(x_resize * x, y, edge) for x in range(XNEW)] for y in range(Y)]
 
-    if YNEW == Y:
-        return intermediate_image  # if no rescaling occurs along Y
+    if YNEW == Y:  # if no rescaling occurs along Y
+        return intermediate_image
     result_image = [[_ylin(x, y_resize * y, edge) for x in range(XNEW)] for y in range(YNEW)]
     # print(_pixel_1.cache_info())
 
     """
     # ↓ Single pass rescaling.
     #   Included here only for testing pixel() from __init__.py
-
     from imin import pixel
     result_image = [[pixel(source_image, x_resize * x, y_resize * y, edge='repeat', method='bilinear') for x in range(XNEW)] for y in range(YNEW)]
     """
@@ -197,7 +193,7 @@ def bilinear(source_image: list[list[list[int]]], XNEW: int, YNEW: int, edge: in
     return result_image
 
 
-def barycentric(source_image: list[list[list[int]]], XNEW: int, YNEW: int, edge: int | str) -> list[list[list[int]]]:
+def barycentric(source_image: list[list[list[int]]], XNEW: int, YNEW: int, edge: int | str = 'repeat') -> list[list[list[int]]]:
     """Barycentric image rescale.
 
     :param source_image: source image 3D list, coordinate system match Photoshop,
@@ -231,7 +227,6 @@ def barycentric(source_image: list[list[list[int]]], XNEW: int, YNEW: int, edge:
     @lru_cache(maxsize=cache_size)
     def _pixel(x: int, y: int, edge: int | str) -> list[int]:
         """Local version of _src(x, y) with hardcoded source list name, good for caching."""
-
         return _src(source_image, x, y, edge)
 
     def _baryc(x: float, y: float, edge: int | str) -> list[int]:
@@ -268,18 +263,24 @@ def barycentric(source_image: list[list[list[int]]], XNEW: int, YNEW: int, edge:
                 a = x - x1
                 b = y4 - y
                 c = 1 - (a + b)
-                norm3 = [*map(mul, p3, (a,) * Z)]
-                norm1 = [*map(mul, p1, (b,) * Z)]
-                norm4 = [*map(mul, p4, (c,) * Z)]
+                at = (a,) * Z
+                bt = (b,) * Z
+                ct = (c,) * Z
+                norm3 = [*map(mul, p3, at)]
+                norm1 = [*map(mul, p1, bt)]
+                norm4 = [*map(mul, p4, ct)]
                 pixelvalue = [*map(_intaddup, norm1, norm3, norm4)]
                 return pixelvalue
 
             a = x2 - x
             b = y - y1
             c = 1 - (a + b)
-            norm1 = [*map(mul, p1, (a,) * Z)]
-            norm3 = [*map(mul, p3, (b,) * Z)]
-            norm2 = [*map(mul, p2, (c,) * Z)]
+            at = (a,) * Z
+            bt = (b,) * Z
+            ct = (c,) * Z
+            norm1 = [*map(mul, p1, at)]
+            norm3 = [*map(mul, p3, bt)]
+            norm2 = [*map(mul, p2, ct)]
             pixelvalue = [*map(_intaddup, norm1, norm3, norm2)]
             return pixelvalue
 
@@ -287,33 +288,47 @@ def barycentric(source_image: list[list[list[int]]], XNEW: int, YNEW: int, edge:
             a = x - x1
             b = y - y1
             c = 1 - (a + b)
-            norm2 = [*map(mul, p2, (a,) * Z)]
-            norm4 = [*map(mul, p4, (b,) * Z)]
-            norm1 = [*map(mul, p1, (c,) * Z)]
+            at = (a,) * Z
+            bt = (b,) * Z
+            ct = (c,) * Z
+            norm2 = [*map(mul, p2, at)]
+            norm4 = [*map(mul, p4, bt)]
+            norm1 = [*map(mul, p1, ct)]
             pixelvalue = [*map(_intaddup, norm1, norm2, norm4)]
             return pixelvalue
 
         a = x3 - x
         b = y4 - y
         c = 1 - (a + b)
-        norm4 = [*map(mul, p4, (a,) * Z)]
-        norm2 = [*map(mul, p2, (b,) * Z)]
-        norm3 = [*map(mul, p3, (c,) * Z)]
+        at = (a,) * Z
+        bt = (b,) * Z
+        ct = (c,) * Z
+        norm4 = [*map(mul, p4, at)]
+        norm2 = [*map(mul, p2, bt)]
+        norm3 = [*map(mul, p3, ct)]
         pixelvalue = [*map(_intaddup, norm2, norm3, norm4)]
         return pixelvalue
 
-    # ↓ Singe pass rescaling
+    # ↓ Resize factor
     x_resize = (X - 1) / (XNEW - 1)
     y_resize = (Y - 1) / (YNEW - 1)
 
+    # ↓ Singe pass rescaling
     result_image = [[_baryc(x_resize * x, y_resize * y, edge) for x in range(XNEW)] for y in range(YNEW)]
     # print(_pixel.cache_info())
+
+    """
+    # ↓ Single pass rescaling.
+    #   Included here only for testing pixel() from __init__.py
+    from imin import pixel
+    result_image = [[pixel(source_image, x_resize * x, y_resize * y, edge='repeat', method='barycentric') for x in range(XNEW)] for y in range(YNEW)]
+    """
 
     return result_image
 
 
 # ↓ Rescaling, general
-def rescale(source_image: list[list[list[int]]], XNEW: int, YNEW: int, edge: int | str = 0, method: int | str = 1) -> list[list[list[int]]]:
+def rescale(source_image: list[list[list[int]]], XNEW: int, YNEW: int, edge: int | str = 'repeat', method: int | str = 'bilinear') -> list[list[list[int]]]:
     """Image rescaling, using bilinear or barycentric interpolation depending on ``method``.
 
     :param source_image: source image 3D list, coordinate system match Photoshop,

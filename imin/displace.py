@@ -43,7 +43,7 @@ __author__ = 'Ilya Razmanov'
 __copyright__ = '(c) 2024-2026 Ilya Razmanov'
 __credits__ = 'Ilya Razmanov'
 __license__ = 'unlicense'
-__version__ = '26.1.27.21'
+__version__ = '26.1.28.18'
 __maintainer__ = 'Ilya Razmanov'
 __email__ = 'ilyarazmanov@gmail.com'
 __status__ = 'Development'
@@ -53,7 +53,7 @@ from operator import mul
 
 
 # ↓ Pixel reading, local version, different edge modes, nearest neighbour
-def _src(source_image: list[list[list[int]]], x: int | float, y: int | float, edge: int | str = 1) -> list[int]:
+def _src(source_image: list[list[list[int]]], x: int | float, y: int | float, edge: int | str = 'repeat') -> list[int]:
     """Getting whole pixel from image list, nearest neighbour interpolation,
     returns list[channel] for pixel(x, y)."""
 
@@ -64,8 +64,8 @@ def _src(source_image: list[list[list[int]]], x: int | float, y: int | float, ed
 
     if edge == 1 or edge == 'repeat':
         # ↓ Repeat edge.
-        cx = min((X - 1), max(0, int(x)))
-        cy = min((Y - 1), max(0, int(y)))
+        cx = min(X - 1, max(0, int(x)))
+        cy = min(Y - 1, max(0, int(y)))
         pixelvalue = source_image[cy][cx]
     elif edge == 2 or edge == 'wrap':
         # ↓ Wrap around.
@@ -117,7 +117,6 @@ def bilinear(source_image: list[list[list[int]]], fx, fy, XNEW: int, YNEW: int, 
     @lru_cache
     def _pixel(x: int, y: int, edge: int | str) -> list[int]:
         """Local version of _src(x, y) with hardcoded source list name, good for caching."""
-
         return _src(source_image, x, y, edge)
 
     def _blin(x: float, y: float, edge: int | str) -> list[int]:
@@ -134,33 +133,26 @@ def bilinear(source_image: list[list[list[int]]], fx, fy, XNEW: int, YNEW: int, 
             y0 = int(y)
         else:
             y0 = int(y) - 1
-        # ↓ In case of direct hit, no interpolation required
+
         if x == x0 and y == y0:
             return _pixel(x0, y0, edge)
-        # ↓ When direct hit misses, interpolation goes on
         x1 = x0 + 1
         y1 = y0 + 1
-
-        # ↓ Distance weights for pixels, packed as tuple for map() below
         wt00 = (((x1 - x) * (y1 - y)),) * Z
         wt01 = (((x1 - x) * (y - y0)),) * Z
         wt10 = (((x - x0) * (y1 - y)),) * Z
         wt11 = (((x - x0) * (y - y0)),) * Z
-
-        # ↓ Reading corner pixels and scaling values according to weights above
         norm00 = [*map(mul, _pixel(x0, y0, edge), wt00)]
         norm01 = [*map(mul, _pixel(x0, y1, edge), wt01)]
         norm10 = [*map(mul, _pixel(x1, y0, edge), wt10)]
         norm11 = [*map(mul, _pixel(x1, y1, edge), wt11)]
-
-        # ↓ Adding up pixels by channels
         pixelvalue = [*map(_intaddup, norm00, norm01, norm10, norm11)]
-
         return pixelvalue
 
     # ↓ Singe pass displacement
     result_image = [[_blin(fx(x, y), fy(x, y), edge) for x in range(XNEW)] for y in range(YNEW)]
     # print(_pixel.cache_info())
+
     return result_image
 
 
@@ -199,7 +191,6 @@ def barycentric(source_image: list[list[list[int]]], fx, fy, XNEW: int, YNEW: in
     @lru_cache
     def _pixel(x: int, y: int, edge: int | str) -> list[int]:
         """Local version of _src(x, y) with hardcoded source list name, good for caching."""
-
         return _src(source_image, x, y, edge)
 
     def _baryc(x: float, y: float, edge: int | str) -> list[int]:
@@ -236,18 +227,24 @@ def barycentric(source_image: list[list[list[int]]], fx, fy, XNEW: int, YNEW: in
                 a = x - x1
                 b = y4 - y
                 c = 1 - (a + b)
-                norm3 = [*map(mul, p3, (a,) * Z)]
-                norm1 = [*map(mul, p1, (b,) * Z)]
-                norm4 = [*map(mul, p4, (c,) * Z)]
+                at = (a,) * Z
+                bt = (b,) * Z
+                ct = (c,) * Z
+                norm3 = [*map(mul, p3, at)]
+                norm1 = [*map(mul, p1, bt)]
+                norm4 = [*map(mul, p4, ct)]
                 pixelvalue = [*map(_intaddup, norm1, norm3, norm4)]
                 return pixelvalue
 
             a = x2 - x
             b = y - y1
             c = 1 - (a + b)
-            norm1 = [*map(mul, p1, (a,) * Z)]
-            norm3 = [*map(mul, p3, (b,) * Z)]
-            norm2 = [*map(mul, p2, (c,) * Z)]
+            at = (a,) * Z
+            bt = (b,) * Z
+            ct = (c,) * Z
+            norm1 = [*map(mul, p1, at)]
+            norm3 = [*map(mul, p3, bt)]
+            norm2 = [*map(mul, p2, ct)]
             pixelvalue = [*map(_intaddup, norm1, norm3, norm2)]
             return pixelvalue
 
@@ -255,18 +252,24 @@ def barycentric(source_image: list[list[list[int]]], fx, fy, XNEW: int, YNEW: in
             a = x - x1
             b = y - y1
             c = 1 - (a + b)
-            norm2 = [*map(mul, p2, (a,) * Z)]
-            norm4 = [*map(mul, p4, (b,) * Z)]
-            norm1 = [*map(mul, p1, (c,) * Z)]
+            at = (a,) * Z
+            bt = (b,) * Z
+            ct = (c,) * Z
+            norm2 = [*map(mul, p2, at)]
+            norm4 = [*map(mul, p4, bt)]
+            norm1 = [*map(mul, p1, ct)]
             pixelvalue = [*map(_intaddup, norm1, norm2, norm4)]
             return pixelvalue
 
         a = x3 - x
         b = y4 - y
         c = 1 - (a + b)
-        norm4 = [*map(mul, p4, (a,) * Z)]
-        norm2 = [*map(mul, p2, (b,) * Z)]
-        norm3 = [*map(mul, p3, (c,) * Z)]
+        at = (a,) * Z
+        bt = (b,) * Z
+        ct = (c,) * Z
+        norm4 = [*map(mul, p4, at)]
+        norm2 = [*map(mul, p2, bt)]
+        norm3 = [*map(mul, p3, ct)]
         pixelvalue = [*map(_intaddup, norm2, norm3, norm4)]
         return pixelvalue
 
@@ -278,7 +281,7 @@ def barycentric(source_image: list[list[list[int]]], fx, fy, XNEW: int, YNEW: in
 
 
 # ↓ Singe pass displacement, general
-def displace(source_image: list[list[list[int]]], fx, fy, XNEW: int, YNEW: int, edge: int | str = 0, method: int | str = 1) -> list[list[list[int]]]:
+def displace(source_image: list[list[list[int]]], fx, fy, XNEW: int, YNEW: int, edge: int | str = 0, method: int | str = 'bilinear') -> list[list[list[int]]]:
     """Image displacement according to ``fx`` and ``fy`` functions, using bilinear or barycentric interpolation depending on ``method``.
 
     :param source_image: source image 3D list, coordinate system match Photoshop,

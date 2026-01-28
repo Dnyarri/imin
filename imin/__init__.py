@@ -42,7 +42,7 @@ __author__ = 'Ilya Razmanov'
 __copyright__ = '(c) 2023-2026 Ilya Razmanov'
 __credits__ = 'Ilya Razmanov'
 __license__ = 'unlicense'
-__version__ = '26.1.28.8'
+__version__ = '26.1.28.18'
 __maintainer__ = 'Ilya Razmanov'
 __email__ = 'ilyarazmanov@gmail.com'
 __status__ = 'Development'
@@ -51,7 +51,7 @@ from operator import mul
 
 
 # ↓ Pixel reading, different edge modes, nearest neighbour
-def src(source_image: list[list[list[int]]], x: int | float, y: int | float, edge: int | str = 1) -> list[int]:
+def src(source_image: list[list[list[int]]], x: int | float, y: int | float, edge: int | str = 'repeat') -> list[int]:
     """Getting whole pixel from image list, nearest neighbour interpolation,
     returns list[channel] for pixel(x, y).
 
@@ -77,8 +77,8 @@ def src(source_image: list[list[list[int]]], x: int | float, y: int | float, edg
 
     if edge == 1 or edge == 'repeat':
         # ↓ Repeat edge.
-        cx = min((X - 1), max(0, int(x)))
-        cy = min((Y - 1), max(0, int(y)))
+        cx = min(X - 1, max(0, int(x)))
+        cy = min(Y - 1, max(0, int(y)))
         pixelvalue = source_image[cy][cx]
     elif edge == 2 or edge == 'wrap':
         # ↓ Wrap around.
@@ -130,12 +130,9 @@ def blin(source_image: list[list[list[int]]], x: float, y: float, edge: int | st
         ┼────┼────┤
      y1 │ 01 │ 11 │
         └────┴────┘
+
     NOTE: Corners coordinates are calculated taking into account that
-    for negative x and y values
-        int(x) > x
-            and
-        int(y) > y
-        correspondingly. """
+    for negative x and y values int(x) > x and int(y) > y correspondingly. """
 
     if x >= 0:
         x0 = int(x)
@@ -145,22 +142,22 @@ def blin(source_image: list[list[list[int]]], x: float, y: float, edge: int | st
         y0 = int(y)
     else:
         y0 = int(y) - 1
-    # ↓ In case of direct hit, no interpolation required
+    # ↓ In case of direct hit no interpolation required
     if x == x0 and y == y0:
         return src(source_image, x0, y0, edge)
-    # ↓ When direct hit misses, interpolation goes on
+    # ↓ In case of a miss interpolation ensues
     x1 = x0 + 1
     y1 = y0 + 1
 
-    # ↓ Distance weights for pixels, packed as tuple for map() below
+    # ↓ Distance weights for pixels, packed as tuples for map() below
     w00 = (x1 - x) * (y1 - y)
     w01 = (x1 - x) * (y - y0)
     w10 = (x - x0) * (y1 - y)
     w11 = (x - x0) * (y - y0)
-    wt00 = ((w00),) * Z
-    wt01 = ((w01),) * Z
-    wt10 = ((w10),) * Z
-    wt11 = ((w11),) * Z
+    wt00 = (w00,) * Z
+    wt01 = (w01,) * Z
+    wt10 = (w10,) * Z
+    wt11 = (w11,) * Z
 
     # ↓ Reading corner pixels and scaling values according to weights above
     norm00 = [*map(mul, src(source_image, x0, y0, edge), wt00)]
@@ -168,7 +165,7 @@ def blin(source_image: list[list[list[int]]], x: float, y: float, edge: int | st
     norm10 = [*map(mul, src(source_image, x1, y0, edge), wt10)]
     norm11 = [*map(mul, src(source_image, x1, y1, edge), wt11)]
 
-    # ↓ Adding up pixels by channels
+    # ↓ Adding up scaled corners channel by channel
     pixelvalue = [*map(_intaddup, norm00, norm01, norm10, norm11)]
 
     """
@@ -180,8 +177,6 @@ def blin(source_image: list[list[list[int]]], x: float, y: float, edge: int | st
     norm01 = [w01 * src(source_image, x0, y1, edge)[z] for z in range(Z)]
     norm10 = [w10 * src(source_image, x1, y0, edge)[z] for z in range(Z)]
     norm11 = [w11 * src(source_image, x1, y1, edge)[z] for z in range(Z)]
-
-    # ↓ Adding up pixels by channels
     pixelvalue = [_intaddup(norm00[z], norm01[z], norm10[z], norm11[z]) for z in range(Z)]
     """
 
@@ -231,11 +226,7 @@ def baryc(source_image: list[list[list[int]]], x: float, y: float, edge: int | s
         (i.e. 2×2 pixel number square), that greatly simplifies calculation.
 
     NOTE: Corners coordinates are calculated taking into account that
-    for negative x and y values
-        int(x) > x
-            and
-        int(y) > y
-        correspondingly. """
+    for negative x and y values int(x) > x and int(y) > y correspondingly. """
 
     if x >= 0:
         x1 = int(x)
@@ -254,10 +245,10 @@ def baryc(source_image: list[list[list[int]]], x: float, y: float, edge: int | s
 
     # ↓ Corners pixels
     p1 = src(source_image, x1, y1, edge)
-    # ↓ In case of direct hit, no interpolation required
+    # ↓ In case of direct hit no interpolation required
     if x == x1 and y == y1:
         return p1
-    # ↓ When direct hit misses, interpolation goes on
+    # ↓ In case of a miss interpolation ensues
     p2 = src(source_image, x2, y2, edge)
     p3 = src(source_image, x3, y3, edge)
     p4 = src(source_image, x4, y4, edge)
@@ -276,10 +267,13 @@ def baryc(source_image: list[list[list[int]]], x: float, y: float, edge: int | s
             a = x - x1
             b = y4 - y
             c = 1 - (a + b)
+            at = (a,) * Z
+            bt = (b,) * Z
+            ct = (c,) * Z
 
-            norm3 = [*map(mul, p3, (a,) * Z)]
-            norm1 = [*map(mul, p1, (b,) * Z)]
-            norm4 = [*map(mul, p4, (c,) * Z)]
+            norm3 = [*map(mul, p3, at)]
+            norm1 = [*map(mul, p1, bt)]
+            norm4 = [*map(mul, p4, ct)]
 
             pixelvalue = [*map(_intaddup, norm1, norm3, norm4)]
 
@@ -289,10 +283,13 @@ def baryc(source_image: list[list[list[int]]], x: float, y: float, edge: int | s
         a = x2 - x
         b = y - y1
         c = 1 - (a + b)
+        at = (a,) * Z
+        bt = (b,) * Z
+        ct = (c,) * Z
 
-        norm1 = [*map(mul, p1, (a,) * Z)]
-        norm3 = [*map(mul, p3, (b,) * Z)]
-        norm2 = [*map(mul, p2, (c,) * Z)]
+        norm1 = [*map(mul, p1, at)]
+        norm3 = [*map(mul, p3, bt)]
+        norm2 = [*map(mul, p2, ct)]
 
         pixelvalue = [*map(_intaddup, norm1, norm3, norm2)]
 
@@ -304,10 +301,13 @@ def baryc(source_image: list[list[list[int]]], x: float, y: float, edge: int | s
         a = x - x1
         b = y - y1
         c = 1 - (a + b)
+        at = (a,) * Z
+        bt = (b,) * Z
+        ct = (c,) * Z
 
-        norm2 = [*map(mul, p2, (a,) * Z)]
-        norm4 = [*map(mul, p4, (b,) * Z)]
-        norm1 = [*map(mul, p1, (c,) * Z)]
+        norm2 = [*map(mul, p2, at)]
+        norm4 = [*map(mul, p4, bt)]
+        norm1 = [*map(mul, p1, ct)]
 
         pixelvalue = [*map(_intaddup, norm1, norm2, norm4)]
 
@@ -317,10 +317,13 @@ def baryc(source_image: list[list[list[int]]], x: float, y: float, edge: int | s
     a = x3 - x
     b = y4 - y
     c = 1 - (a + b)
+    at = (a,) * Z
+    bt = (b,) * Z
+    ct = (c,) * Z
 
-    norm4 = [*map(mul, p4, (a,) * Z)]
-    norm2 = [*map(mul, p2, (b,) * Z)]
-    norm3 = [*map(mul, p3, (c,) * Z)]
+    norm4 = [*map(mul, p4, at)]
+    norm2 = [*map(mul, p2, bt)]
+    norm3 = [*map(mul, p3, ct)]
 
     pixelvalue = [*map(_intaddup, norm2, norm3, norm4)]
 
