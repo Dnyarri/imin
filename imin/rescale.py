@@ -41,7 +41,7 @@ __author__ = 'Ilya Razmanov'
 __copyright__ = '(c) 2024-2026 Ilya Razmanov'
 __credits__ = 'Ilya Razmanov'
 __license__ = 'unlicense'
-__version__ = '26.1.27.21'
+__version__ = '26.1.28.8'
 __maintainer__ = 'Ilya Razmanov'
 __email__ = 'ilyarazmanov@gmail.com'
 __status__ = 'Development'
@@ -185,6 +185,14 @@ def bilinear(source_image: list[list[list[int]]], XNEW: int, YNEW: int, edge: in
         return intermediate_image  # if no rescaling occurs along Y
     result_image = [[_ylin(x, y_resize * y, edge) for x in range(XNEW)] for y in range(YNEW)]
     # print(_pixel_1.cache_info())
+
+    """
+    # ↓ Single pass rescaling.
+    #   Included here only for testing pixel() from __init__.py
+
+    from imin import pixel
+    result_image = [[pixel(source_image, x_resize * x, y_resize * y, edge='repeat', method='bilinear') for x in range(XNEW)] for y in range(YNEW)]
+    """
 
     return result_image
 

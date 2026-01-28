@@ -42,7 +42,7 @@ __author__ = 'Ilya Razmanov'
 __copyright__ = '(c) 2023-2026 Ilya Razmanov'
 __credits__ = 'Ilya Razmanov'
 __license__ = 'unlicense'
-__version__ = '26.1.27.21'
+__version__ = '26.1.28.8'
 __maintainer__ = 'Ilya Razmanov'
 __email__ = 'ilyarazmanov@gmail.com'
 __status__ = 'Development'
@@ -153,10 +153,14 @@ def blin(source_image: list[list[list[int]]], x: float, y: float, edge: int | st
     y1 = y0 + 1
 
     # ↓ Distance weights for pixels, packed as tuple for map() below
-    wt00 = (((x1 - x) * (y1 - y)),) * Z
-    wt01 = (((x1 - x) * (y - y0)),) * Z
-    wt10 = (((x - x0) * (y1 - y)),) * Z
-    wt11 = (((x - x0) * (y - y0)),) * Z
+    w00 = (x1 - x) * (y1 - y)
+    w01 = (x1 - x) * (y - y0)
+    w10 = (x - x0) * (y1 - y)
+    w11 = (x - x0) * (y - y0)
+    wt00 = ((w00),) * Z
+    wt01 = ((w01),) * Z
+    wt10 = ((w10),) * Z
+    wt11 = ((w11),) * Z
 
     # ↓ Reading corner pixels and scaling values according to weights above
     norm00 = [*map(mul, src(source_image, x0, y0, edge), wt00)]
@@ -166,6 +170,20 @@ def blin(source_image: list[list[list[int]]], x: float, y: float, edge: int | st
 
     # ↓ Adding up pixels by channels
     pixelvalue = [*map(_intaddup, norm00, norm01, norm10, norm11)]
+
+    """
+    # ↓ List comprehension alternative to map.
+    #   In single pass x5 upscaling execution time doubled vs. [*map()],
+    #   so this alternative included here for educational purposes only.
+
+    norm00 = [w00 * src(source_image, x0, y0, edge)[z] for z in range(Z)]
+    norm01 = [w01 * src(source_image, x0, y1, edge)[z] for z in range(Z)]
+    norm10 = [w10 * src(source_image, x1, y0, edge)[z] for z in range(Z)]
+    norm11 = [w11 * src(source_image, x1, y1, edge)[z] for z in range(Z)]
+
+    # ↓ Adding up pixels by channels
+    pixelvalue = [_intaddup(norm00[z], norm01[z], norm10[z], norm11[z]) for z in range(Z)]
+    """
 
     return pixelvalue
 
