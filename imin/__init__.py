@@ -16,7 +16,7 @@ i.e. origin is top left corner, channels order is LA or RGBA from 0 to top;
 - ``edge``: edge extrapolation mode:
     - ``edge=1`` or ``edge='repeat'``: repeat edge, like Photoshop;
     - ``edge=2`` or ``edge='wrap'``;
-    - ``edge=``other: extrapolate with zeroes;
+    - ``edge=``other: extrapolate with zeroes. Alpha=0 means transparent.
 
 - ``method``: pixel interpolation method:
     - ``method=0`` or ``method='nearest'``: nearest neighbour interpolation;
@@ -42,7 +42,7 @@ __author__ = 'Ilya Razmanov'
 __copyright__ = '(c) 2023-2026 Ilya Razmanov'
 __credits__ = 'Ilya Razmanov'
 __license__ = 'unlicense'
-__version__ = '26.1.29.7'
+__version__ = '26.1.29.9'
 __maintainer__ = 'Ilya Razmanov'
 __email__ = 'ilyarazmanov@gmail.com'
 __status__ = 'Development'
@@ -55,8 +55,9 @@ def src(source_image: list[list[list[int]]], x: int | float, y: int | float, edg
     """Getting whole pixel from image list, nearest neighbour interpolation,
     returns list[channel] for pixel(x, y).
 
-    :param source_image: source image 3D list, coordinate system match Photoshop,
-    i.e. origin is top left corner, channels order is LA or RGBA from bottom to top;
+    :param source_image: source image 3D nested list,
+        coordinate system match Photoshop, i.e. origin is top left corner,
+        channels order is LA or RGBA from bottom to top;
     :type source_image: list[list[list[int]]]
     :param int x: x coordinate of pixel being read;
     :param int y: y coordinate of pixel being read;
@@ -64,7 +65,8 @@ def src(source_image: list[list[list[int]]], x: int | float, y: int | float, edg
 
         - `edge=1` or `edge='repeat'`: repeat edge, like Photoshop;
         - `edge=2` or `edge='wrap'`: wrap around;
-        - `edge=`other: extrapolate with zeroes. Alpha=0 correspond to transparent.
+        - `edge=`other: extrapolate with zeroes.
+            Alpha=0 correspond to transparent.
     :return: pixel(x, y) value.
     :rtype: list[int]
 

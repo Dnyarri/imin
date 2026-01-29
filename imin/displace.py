@@ -1,4 +1,4 @@
-"""Generalized image displacement with barycentric or bilinear interpolation.
+"""Generalized image displacement using bilinear or barycentric interpolation.
 
 Usage
 -----
@@ -18,7 +18,7 @@ i.e. origin is top left corner, channels order is LA or RGBA from 0 to top;
 - ``edge``: edge extrapolation mode:
     - ``edge=1`` or ``edge='repeat'``: repeat edge, like Photoshop;
     - ``edge=2`` or ``edge='wrap'``: wrap around;
-    - ``edge=``other: extrapolate with zeroes;
+    - ``edge=``other: extrapolate with zeroes. Alpha=0 means transparent.
 
 - ``method``: image interpolation method:
     - ``method=1`` or ``method='bilinear'``: bilinear interpolation;
@@ -43,7 +43,7 @@ __author__ = 'Ilya Razmanov'
 __copyright__ = '(c) 2024-2026 Ilya Razmanov'
 __credits__ = 'Ilya Razmanov'
 __license__ = 'unlicense'
-__version__ = '26.1.28.18'
+__version__ = '26.1.29.9'
 __maintainer__ = 'Ilya Razmanov'
 __email__ = 'ilyarazmanov@gmail.com'
 __status__ = 'Development'
@@ -52,7 +52,8 @@ from functools import lru_cache
 from operator import mul
 
 
-# ↓ Pixel reading, local version, different edge modes, nearest neighbour
+# ↓ Pixel reading (local function), nearest neighbour interpolation,
+#   configurable edge modes
 def _src(source_image: list[list[list[int]]], x: int | float, y: int | float, edge: int | str = 'repeat') -> list[int]:
     """Getting whole pixel from image list, nearest neighbour interpolation,
     returns list[channel] for pixel(x, y)."""
@@ -82,7 +83,7 @@ def _src(source_image: list[list[list[int]]], x: int | float, y: int | float, ed
     return pixelvalue
 
 
-# ↓ Singe pass displacement, bilinear
+# ↓ Singe pass displacement, bilinear interpolation, configurable edge modes
 def bilinear(source_image: list[list[list[int]]], fx, fy, XNEW: int, YNEW: int, edge: int | str) -> list[list[list[int]]]:
     """Bilinear image displacement according to ``fx`` and ``fy`` functions.
 
@@ -134,15 +135,16 @@ def bilinear(source_image: list[list[list[int]]], fx, fy, XNEW: int, YNEW: int, 
         else:
             y0 = int(y) - 1
 
+        pix00 = _pixel(x0, y0, edge)
         if x == x0 and y == y0:
-            return _pixel(x0, y0, edge)
+            return pix00
         x1 = x0 + 1
         y1 = y0 + 1
         wt00 = (((x1 - x) * (y1 - y)),) * Z
         wt01 = (((x1 - x) * (y - y0)),) * Z
         wt10 = (((x - x0) * (y1 - y)),) * Z
         wt11 = (((x - x0) * (y - y0)),) * Z
-        norm00 = [*map(mul, _pixel(x0, y0, edge), wt00)]
+        norm00 = [*map(mul, pix00, wt00)]
         norm01 = [*map(mul, _pixel(x0, y1, edge), wt01)]
         norm10 = [*map(mul, _pixel(x1, y0, edge), wt10)]
         norm11 = [*map(mul, _pixel(x1, y1, edge), wt11)]
@@ -156,7 +158,7 @@ def bilinear(source_image: list[list[list[int]]], fx, fy, XNEW: int, YNEW: int, 
     return result_image
 
 
-# ↓ Singe pass displacement, barycentric
+# ↓ Singe pass displacement, barycentric interpolation, configurable edge modes
 def barycentric(source_image: list[list[list[int]]], fx, fy, XNEW: int, YNEW: int, edge: int | str) -> list[list[list[int]]]:
     """Barycentric image displacement according to ``fx`` and ``fy`` functions.
 
@@ -215,14 +217,14 @@ def barycentric(source_image: list[list[list[int]]], fx, fy, XNEW: int, YNEW: in
         y3 = y1 + 1
         x4 = x1
         y4 = y3
-        p1 = _pixel(x1, y1, edge)
+        pix1 = _pixel(x1, y1, edge)
         if x == x1 and y == y1:
-            return p1
-        p2 = _pixel(x2, y2, edge)
-        p3 = _pixel(x3, y3, edge)
-        p4 = _pixel(x4, y4, edge)
+            return pix1
+        pix2 = _pixel(x2, y2, edge)
+        pix3 = _pixel(x3, y3, edge)
+        pix4 = _pixel(x4, y4, edge)
 
-        if abs(sum(p1[:Z_COLOR]) - sum(p3[:Z_COLOR])) < abs(sum(p2[:Z_COLOR]) - sum(p4[:Z_COLOR])):
+        if abs(sum(pix1[:Z_COLOR]) - sum(pix3[:Z_COLOR])) < abs(sum(pix2[:Z_COLOR]) - sum(pix4[:Z_COLOR])):
             if (x - x1) < (y - y1):
                 a = x - x1
                 b = y4 - y
@@ -230,9 +232,9 @@ def barycentric(source_image: list[list[list[int]]], fx, fy, XNEW: int, YNEW: in
                 at = (a,) * Z
                 bt = (b,) * Z
                 ct = (c,) * Z
-                norm3 = [*map(mul, p3, at)]
-                norm1 = [*map(mul, p1, bt)]
-                norm4 = [*map(mul, p4, ct)]
+                norm3 = [*map(mul, pix3, at)]
+                norm1 = [*map(mul, pix1, bt)]
+                norm4 = [*map(mul, pix4, ct)]
                 pixelvalue = [*map(_intaddup, norm1, norm3, norm4)]
                 return pixelvalue
 
@@ -242,9 +244,9 @@ def barycentric(source_image: list[list[list[int]]], fx, fy, XNEW: int, YNEW: in
             at = (a,) * Z
             bt = (b,) * Z
             ct = (c,) * Z
-            norm1 = [*map(mul, p1, at)]
-            norm3 = [*map(mul, p3, bt)]
-            norm2 = [*map(mul, p2, ct)]
+            norm1 = [*map(mul, pix1, at)]
+            norm3 = [*map(mul, pix3, bt)]
+            norm2 = [*map(mul, pix2, ct)]
             pixelvalue = [*map(_intaddup, norm1, norm3, norm2)]
             return pixelvalue
 
@@ -255,9 +257,9 @@ def barycentric(source_image: list[list[list[int]]], fx, fy, XNEW: int, YNEW: in
             at = (a,) * Z
             bt = (b,) * Z
             ct = (c,) * Z
-            norm2 = [*map(mul, p2, at)]
-            norm4 = [*map(mul, p4, bt)]
-            norm1 = [*map(mul, p1, ct)]
+            norm2 = [*map(mul, pix2, at)]
+            norm4 = [*map(mul, pix4, bt)]
+            norm1 = [*map(mul, pix1, ct)]
             pixelvalue = [*map(_intaddup, norm1, norm2, norm4)]
             return pixelvalue
 
@@ -267,9 +269,9 @@ def barycentric(source_image: list[list[list[int]]], fx, fy, XNEW: int, YNEW: in
         at = (a,) * Z
         bt = (b,) * Z
         ct = (c,) * Z
-        norm4 = [*map(mul, p4, at)]
-        norm2 = [*map(mul, p2, bt)]
-        norm3 = [*map(mul, p3, ct)]
+        norm4 = [*map(mul, pix4, at)]
+        norm2 = [*map(mul, pix2, bt)]
+        norm3 = [*map(mul, pix3, ct)]
         pixelvalue = [*map(_intaddup, norm2, norm3, norm4)]
         return pixelvalue
 
@@ -280,7 +282,7 @@ def barycentric(source_image: list[list[list[int]]], fx, fy, XNEW: int, YNEW: in
     return result_image
 
 
-# ↓ Singe pass displacement, general
+# ↓ Image displacement, configurable interpolation, configurable edge modes
 def displace(source_image: list[list[list[int]]], fx, fy, XNEW: int, YNEW: int, edge: int | str = 0, method: int | str = 'bilinear') -> list[list[list[int]]]:
     """Image displacement according to ``fx`` and ``fy`` functions, using bilinear or barycentric interpolation depending on ``method``.
 
