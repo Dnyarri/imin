@@ -42,7 +42,7 @@ __author__ = 'Ilya Razmanov'
 __copyright__ = '(c) 2023-2026 Ilya Razmanov'
 __credits__ = 'Ilya Razmanov'
 __license__ = 'unlicense'
-__version__ = '26.1.30.6'
+__version__ = '26.1.30.10'
 __maintainer__ = 'Ilya Razmanov'
 __email__ = 'ilyarazmanov@gmail.com'
 __status__ = 'Development'
@@ -51,7 +51,7 @@ from operator import mul
 
 
 # ↓ Pixel reading, nearest neighbour interpolation, configurable edge modes
-def src(source_image: list[list[list[int]]], x: int | float, y: int | float, edge: int | str = 'repeat') -> list[int]:
+def src(source_image: list[list[list[int]]], x: int | float, y: int | float, edge: int | str) -> list[int]:
     """Getting whole pixel from image list, nearest neighbour interpolation,
     returns list[channel] for pixel(x, y).
 
@@ -59,13 +59,13 @@ def src(source_image: list[list[list[int]]], x: int | float, y: int | float, edg
         coordinate system match Photoshop, i.e. origin is top left corner,
         channels order is LA or RGBA from bottom to top;
     :type source_image: list[list[list[int]]]
-    :param int x: x coordinate of pixel being read;
-    :param int y: y coordinate of pixel being read;
+    :param int x: ``x`` coordinate of pixel being read;
+    :param int y: ``y`` coordinate of pixel being read;
     :param int | str edge: edge extrapolation mode:
 
-        - `edge=1` or `edge='repeat'`: repeat edge, like Photoshop;
-        - `edge=2` or `edge='wrap'`: wrap around;
-        - `edge=`other: extrapolate with zeroes.
+        - ``edge=1`` or ``edge='repeat'``: repeat edge, like Photoshop;
+        - ``edge=2`` or ``edge='wrap'``: wrap around;
+        - ``edge=``other: extrapolate with zeroes.
             Alpha=0 correspond to transparent.
     :return: pixel(x, y) value.
     :rtype: list[int]
@@ -101,16 +101,18 @@ def src(source_image: list[list[list[int]]], x: int | float, y: int | float, edg
 def blin(source_image: list[list[list[int]]], x: float, y: float, edge: int | str) -> list[int]:
     """Returns bilinearly interpolated pixel(x, y).
 
-    :param source_image: source image 3D list, coordinate system match Photoshop,
-    i.e. origin is top left corner, channels order is LA or RGBA from bottom to top;
+    :param source_image: source image 3D list,
+        coordinate system match Photoshop, i.e. origin is top left corner,
+        channels order is LA or RGBA from bottom to top;
     :type source_image: list[list[list[int]]]
-    :param float x: x coordinate of pixel being read;
-    :param float y: y coordinate of pixel being read;
+    :param float x: ``x`` coordinate of pixel being read;
+    :param float y: ``y`` coordinate of pixel being read;
     :param int | str edge: edge extrapolation mode:
 
-        - `edge=1` or `edge='repeat'`: repeat edge, like Photoshop;
-        - `edge=2` or `edge='wrap'`: wrap around;
-        - `edge=`other: extrapolate with zeroes. Alpha=0 correspond to transparent.
+        - ``edge=1`` or ``edge='repeat'``: repeat edge, like Photoshop;
+        - ``edge=2`` or ``edge='wrap'``: wrap around;
+        - ``edge=``other: extrapolate with zeroes.
+            Alpha=0 correspond to transparent.
     :return: interpolated pixel(x, y) value.
     :rtype: list[int]
 
@@ -199,16 +201,18 @@ def blin(source_image: list[list[list[int]]], x: float, y: float, edge: int | st
 def baryc(source_image: list[list[list[int]]], x: float, y: float, edge: int | str) -> list[int]:
     """Returns barycentrically interpolated pixel(x, y).
 
-    :param source_image: source image 3D list, coordinate system match Photoshop,
-    i.e. origin is top left corner, channels order is LA or RGBA from bottom to top;
+    :param source_image: source image 3D list,
+        coordinate system match Photoshop, i.e. origin is top left corner,
+        channels order is LA or RGBA from bottom to top;
     :type source_image: list[list[list[int]]]
-    :param float x: x coordinate of pixel being read;
-    :param float y: y coordinate of pixel being read;
+    :param float x: ``x`` coordinate of pixel being read;
+    :param float y: ``y`` coordinate of pixel being read;
     :param int | str edge: edge extrapolation mode:
 
-        - `edge=1` or `edge='repeat'`: repeat edge, like Photoshop;
-        - `edge=2` or `edge='wrap'`: wrap around;
-        - `edge=`other: extrapolate with zeroes. Alpha=0 correspond to transparent.
+        - ``edge=1`` or ``edge='repeat'``: repeat edge, like Photoshop;
+        - ``edge=2`` or ``edge='wrap'``: wrap around;
+        - ``edge=``other: extrapolate with zeroes.
+            Alpha=0 correspond to transparent.
     :return: interpolated pixel(x, y) value.
     :rtype: list[int]
 
@@ -351,21 +355,23 @@ def pixel(source_image: list[list[list[int]]], x: float, y: float, edge: int | s
     """Configurable method of reading interpolated pixel,
     returns list[channel] for pixel(x, y).
 
-    :param source_image: source image 3D list, coordinate system match Photoshop,
-    i.e. origin is top left corner, channels order is LA or RGBA from bottom to top;
+    :param source_image: source image 3D list,
+        coordinate system match Photoshop, i.e. origin is top left corner,
+        channels order is LA or RGBA from bottom to top;
     :type source_image: list[list[list[int]]]
-    :param float x: x coordinate of pixel being read;
-    :param float y: y coordinate of pixel being read;
+    :param float x: ``x`` coordinate of pixel being read;
+    :param float y: ``y`` coordinate of pixel being read;
     :param int | str edge: edge extrapolation mode:
 
-        - `edge=1` or `edge='repeat'`: repeat edge, like Photoshop;
-        - `edge=2` or `edge='wrap'`: wrap around;
-        - `edge=`other: extrapolate with zeroes. Alpha=0 correspond to transparent.
+        - ``edge=1`` or ``edge='repeat'``: repeat edge, like Photoshop;
+        - ``edge=2`` or ``edge='wrap'``: wrap around;
+        - ``edge=``other: extrapolate with zeroes.
+            Alpha=0 correspond to transparent.
     :param int | str method: pixel interpolation method:
 
-        - `method=2` or `method='barycentric'`: barycentric interpolation;
-        - `method=1` or `method='bilinear'`: bilinear interpolation;
-        - `method=0` or `method='nearest'`: nearest neighbour interpolation.
+        - ``method=2`` or ``method='barycentric'``: barycentric interpolation;
+        - ``method=1`` or ``method='bilinear'``: bilinear interpolation;
+        - ``method=0`` or ``method='nearest'``: nearest neighbour interpolation.
     :return: interpolated pixel(x, y) value.
     :rtype: list[int]
 
