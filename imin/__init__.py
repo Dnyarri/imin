@@ -42,7 +42,7 @@ __author__ = 'Ilya Razmanov'
 __copyright__ = '(c) 2023-2026 Ilya Razmanov'
 __credits__ = 'Ilya Razmanov'
 __license__ = 'unlicense'
-__version__ = '26.1.29.9'
+__version__ = '26.1.30.6'
 __maintainer__ = 'Ilya Razmanov'
 __email__ = 'ilyarazmanov@gmail.com'
 __status__ = 'Development'
@@ -155,7 +155,6 @@ def blin(source_image: list[list[list[int]]], x: float, y: float, edge: int | st
     # ↓ In case of a miss interpolation ensues
     x1 = x0 + 1
     y1 = y0 + 1
-
     pix01 = src(source_image, x0, y1, edge)
     pix10 = src(source_image, x1, y0, edge)
     pix11 = src(source_image, x1, y1, edge)
@@ -183,8 +182,8 @@ def blin(source_image: list[list[list[int]]], x: float, y: float, edge: int | st
 
     """
     # ↓ List comprehension alternative to map.
-    #   In single pass x5 upscaling execution time doubled vs. [*map()],
-    #   so this alternative included here for educational purposes only.
+    #   In single pass x5 upscaling execution time was doubled vs. [*map()],
+    #   so this alternative is described here for illustration purposes only.
 
     norm00 = [w00 * src(source_image, x0, y0, edge)[z] for z in range(Z)]
     norm01 = [w01 * src(source_image, x0, y1, edge)[z] for z in range(Z)]
@@ -223,7 +222,9 @@ def baryc(source_image: list[list[list[int]]], x: float, y: float, edge: int | s
     #   X = len(source_image[0])
     Z = len(source_image[0][0])
 
-    # ↓ Number of color channels, alpha excluded.
+    # ↓ For calculation of pixel color difference between corners,
+    #   number of channels minus alpha is required.
+    #   Potential channels above RGBA are discarded.
     Z_COLOR = Z if Z == 1 or Z == 3 else min(Z - 1, 3)
 
     """ Square corners are enumerated according to Soviet Army «snail» scheme
@@ -249,19 +250,21 @@ def baryc(source_image: list[list[list[int]]], x: float, y: float, edge: int | s
         y1 = int(y)
     else:
         y1 = int(y) - 1
+
+    # ↓ Starting corner pixels reading
+    pix1 = src(source_image, x1, y1, edge)
+
+    # ↓ In case of direct hit no interpolation required
+    if x == x1 and y == y1:
+        return pix1
+
+    # ↓ In case of a miss interpolation ensues
     x2 = x1 + 1
     y2 = y1
     x3 = x2
     y3 = y1 + 1
     x4 = x1
     y4 = y3
-
-    # ↓ Starting corner pixels reading
-    pix1 = src(source_image, x1, y1, edge)
-    # ↓ In case of direct hit no interpolation required
-    if x == x1 and y == y1:
-        return pix1
-    # ↓ In case of a miss interpolation ensues
     pix2 = src(source_image, x2, y2, edge)
     pix3 = src(source_image, x3, y3, edge)
     pix4 = src(source_image, x4, y4, edge)

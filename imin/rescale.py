@@ -41,7 +41,7 @@ __author__ = 'Ilya Razmanov'
 __copyright__ = '(c) 2024-2026 Ilya Razmanov'
 __credits__ = 'Ilya Razmanov'
 __license__ = 'unlicense'
-__version__ = '26.1.29.9'
+__version__ = '26.1.30.6'
 __maintainer__ = 'Ilya Razmanov'
 __email__ = 'ilyarazmanov@gmail.com'
 __status__ = 'Development'
@@ -105,8 +105,8 @@ def bilinear(source_image: list[list[list[int]]], XNEW: int, YNEW: int, edge: in
     X = len(source_image[0])
     Z = len(source_image[0][0])
 
-    # ↓ Function was never FIR-optimized, but @lru_cache() for source rows reading
-    #   partially compensate for this.
+    # ↓ Function was never FIR-optimized, but @lru_cache
+    #   for source rows reading partially compensate for this.
     @lru_cache(maxsize=4)
     def _pixel_1(x: int, y: int, edge: int | str) -> list[int]:
         """Local version of _src(x, y) with hardcoded source list name, good for caching."""
@@ -119,7 +119,7 @@ def bilinear(source_image: list[list[list[int]]], XNEW: int, YNEW: int, edge: in
         return _src(intermediate_image, x, y, edge)
 
     def _xlin(x: float, y: int, edge: int | str) -> list[int]:
-        """Returns x-linearly interpolated pixel x, y."""
+        """Returns x-linearly interpolated pixel(x, y)."""
 
         def _intaddup(a, b):
             return int(a + b)
@@ -128,12 +128,11 @@ def bilinear(source_image: list[list[list[int]]], XNEW: int, YNEW: int, edge: in
             x0 = int(x)
         else:
             x0 = int(x) - 1
-        x1 = int(x) + 1
 
         pix0 = _pixel_1(x0, y, edge)
-        if x == x0:
+        if x == x0:  # Direct hit. Returns from function!
             return pix0
-
+        x1 = int(x) + 1
         w0 = x1 - x
         w1 = x - x0
         wt0 = (w0,) * Z
@@ -145,7 +144,7 @@ def bilinear(source_image: list[list[list[int]]], XNEW: int, YNEW: int, edge: in
         return pixelvalue
 
     def _ylin(x: int, y: float, edge: int | str) -> list[int]:
-        """Returns y-linearly interpolated pixel x, y."""
+        """Returns y-linearly interpolated pixel(x, y)."""
 
         def _intaddup(a, b):
             return int(a + b)
@@ -154,12 +153,11 @@ def bilinear(source_image: list[list[list[int]]], XNEW: int, YNEW: int, edge: in
             y0 = int(y)
         else:
             y0 = int(y) - 1
-        y1 = int(y) + 1
 
         pix0 = _pixel_2(x, y0, edge)
-        if y == y0:
+        if y == y0:  # Direct hit. Returns from function!
             return pix0
-
+        y1 = int(y) + 1
         w0 = y1 - y
         w1 = y - y0
         wt0 = (w0,) * Z
@@ -187,7 +185,7 @@ def bilinear(source_image: list[list[list[int]]], XNEW: int, YNEW: int, edge: in
 
     """
     # ↓ Single pass rescaling.
-    #   Included here only for testing pixel() from __init__.py
+    #   Included here only for routine retesting of pixel() from __init__.py.
     from imin import pixel
     result_image = [[pixel(source_image, x_resize * x, y_resize * y, edge='repeat', method='bilinear') for x in range(XNEW)] for y in range(YNEW)]
     """
@@ -218,12 +216,14 @@ def barycentric(source_image: list[list[list[int]]], XNEW: int, YNEW: int, edge:
     Y = len(source_image)
     X = len(source_image[0])
     Z = len(source_image[0][0])
+    Z_COLOR = Z if Z == 1 or Z == 3 else min(Z - 1, 3)
 
-    # ↓ Function was never FIR-optimized, but @lru_cache() partially compensate for this.
+    # ↓ Function was never FIR-optimized, but @lru_cache
+    #   for source rows reading partially compensate for this.
     #   Effects starts at @lru_cache(maxsize=4), and seem to stabilize after maxsize=8.
-    #   @lru_cache(maxsize=None) is more efficient but raise concerns
-    #   regarding cache size for large images.
-    #   As a result, on the Toad's behest and volution, maxsize was set
+    #   @lru_cache(maxsize=None) is a tiny yet statistically significant bit faster
+    #   but  raise concerns regarding cache size for large images.
+    #   On the Toad's behest and volution, maxsize was set
     #   to 8 for images bigger than 256 * 256 px, and None otherwise.
     cache_size = 8 if X * Y > 256 * 256 else None
 
@@ -233,12 +233,10 @@ def barycentric(source_image: list[list[list[int]]], XNEW: int, YNEW: int, edge:
         return _src(source_image, x, y, edge)
 
     def _baryc(x: float, y: float, edge: int | str) -> list[int]:
-        """Local version of baryc(x, y) based on _pixel(x, y). Returns interpolated pixel x, y."""
+        """Local version of baryc(x, y) based on _pixel(x, y). Returns interpolated pixel(x, y)."""
 
         def _intaddup(a, b, c):
             return int(a + b + c)
-
-        Z_COLOR = Z if Z == 1 or Z == 3 else min(Z - 1, 3)
 
         if x >= 0:
             x1 = int(x)
@@ -248,15 +246,15 @@ def barycentric(source_image: list[list[list[int]]], XNEW: int, YNEW: int, edge:
             y1 = int(y)
         else:
             y1 = int(y) - 1
+        pix1 = _pixel(x1, y1, edge)
+        if x == x1 and y == y1:  # Direct hit. Returns from function!
+            return pix1
         x2 = x1 + 1
         y2 = y1
         x3 = x2
         y3 = y1 + 1
         x4 = x1
         y4 = y3
-        pix1 = _pixel(x1, y1, edge)
-        if x == x1 and y == y1:
-            return pix1
         pix2 = _pixel(x2, y2, edge)
         pix3 = _pixel(x3, y3, edge)
         pix4 = _pixel(x4, y4, edge)
@@ -322,7 +320,7 @@ def barycentric(source_image: list[list[list[int]]], XNEW: int, YNEW: int, edge:
 
     """
     # ↓ Single pass rescaling.
-    #   Included here only for testing pixel() from __init__.py
+    #   Included here only for routine retesting of pixel() from __init__.py.
     from imin import pixel
     result_image = [[pixel(source_image, x_resize * x, y_resize * y, edge='repeat', method='barycentric') for x in range(XNEW)] for y in range(YNEW)]
     """

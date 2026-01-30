@@ -43,7 +43,7 @@ __author__ = 'Ilya Razmanov'
 __copyright__ = '(c) 2024-2026 Ilya Razmanov'
 __credits__ = 'Ilya Razmanov'
 __license__ = 'unlicense'
-__version__ = '26.1.29.9'
+__version__ = '26.1.30.6'
 __maintainer__ = 'Ilya Razmanov'
 __email__ = 'ilyarazmanov@gmail.com'
 __status__ = 'Development'
@@ -111,17 +111,18 @@ def bilinear(source_image: list[list[list[int]]], fx, fy, XNEW: int, YNEW: int, 
     # X = len(source_image[0])
     Z = len(source_image[0][0])
 
-    # ↓ Function was never FIR-optimized, but @lru_cache for source rows reading
-    #   partially compensate for this.
+    # ↓ Function was never FIR-optimized, but @lru_cache
+    #   for source rows reading partially compensate for this.
     #   Unfortunately, both optimal cache size and actual effect
-    #   on arbitrary displacement are unpredictable.
+    #   on arbitrary displacement depend on exact displacement
+    #   and therefore are unpredictable.
     @lru_cache
     def _pixel(x: int, y: int, edge: int | str) -> list[int]:
         """Local version of _src(x, y) with hardcoded source list name, good for caching."""
         return _src(source_image, x, y, edge)
 
     def _blin(x: float, y: float, edge: int | str) -> list[int]:
-        """Local version of blin(x, y) based on _pixel(x, y). Returns interpolated pixel x, y."""
+        """Local version of blin(x, y) based on _pixel(x, y). Returns interpolated pixel(x, y)."""
 
         def _intaddup(a, b, c, d):
             return int(a + b + c + d)
@@ -136,7 +137,7 @@ def bilinear(source_image: list[list[list[int]]], fx, fy, XNEW: int, YNEW: int, 
             y0 = int(y) - 1
 
         pix00 = _pixel(x0, y0, edge)
-        if x == x0 and y == y0:
+        if x == x0 and y == y0:  # Direct hit. Returns from function!
             return pix00
         x1 = x0 + 1
         y1 = y0 + 1
@@ -185,23 +186,23 @@ def barycentric(source_image: list[list[list[int]]], fx, fy, XNEW: int, YNEW: in
     # Y = len(source_image)
     # X = len(source_image[0])
     Z = len(source_image[0][0])
+    Z_COLOR = Z if Z == 1 or Z == 3 else min(Z - 1, 3)
 
-    # ↓ Function was never FIR-optimized, but @lru_cache for source rows reading
-    #   partially compensate for this.
+    # ↓ Function was never FIR-optimized, but @lru_cache
+    #   for source rows reading partially compensate for this.
     #   Unfortunately, both optimal cache size and actual effect
-    #   on arbitrary displacement are unpredictable.
+    #   on arbitrary displacement depend on exact displacement
+    #   and therefore are unpredictable.
     @lru_cache
     def _pixel(x: int, y: int, edge: int | str) -> list[int]:
         """Local version of _src(x, y) with hardcoded source list name, good for caching."""
         return _src(source_image, x, y, edge)
 
     def _baryc(x: float, y: float, edge: int | str) -> list[int]:
-        """Local version of baryc(x, y) based on _pixel(x, y). Returns interpolated pixel x, y."""
+        """Local version of baryc(x, y) based on _pixel(x, y). Returns interpolated pixel(x, y)."""
 
         def _intaddup(a, b, c):
             return int(a + b + c)
-
-        Z_COLOR = Z if Z == 1 or Z == 3 else min(Z - 1, 3)
 
         if x >= 0:
             x1 = int(x)
@@ -211,15 +212,15 @@ def barycentric(source_image: list[list[list[int]]], fx, fy, XNEW: int, YNEW: in
             y1 = int(y)
         else:
             y1 = int(y) - 1
+        pix1 = _pixel(x1, y1, edge)
+        if x == x1 and y == y1:  # Direct hit. Returns from function!
+            return pix1
         x2 = x1 + 1
         y2 = y1
         x3 = x2
         y3 = y1 + 1
         x4 = x1
         y4 = y3
-        pix1 = _pixel(x1, y1, edge)
-        if x == x1 and y == y1:
-            return pix1
         pix2 = _pixel(x2, y2, edge)
         pix3 = _pixel(x3, y3, edge)
         pix4 = _pixel(x4, y4, edge)
