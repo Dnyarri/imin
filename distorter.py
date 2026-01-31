@@ -23,7 +23,7 @@ __author__ = 'Ilya Razmanov'
 __copyright__ = '(c) 2026 Ilya Razmanov'
 __credits__ = 'Ilya Razmanov'
 __license__ = 'unlicense'
-__version__ = '26.1.28.18'
+__version__ = '26.1.31.5'
 __maintainer__ = 'Ilya Razmanov'
 __email__ = 'ilyarazmanov@gmail.com'
 __status__ = 'Development'
@@ -251,12 +251,15 @@ def RunFilter(event=None) -> None:
 
     UIBusy()
 
-    """ ╭──────────────────────────────╮
-        │ Displacing using algorithmic │
-        │ displacement map. ╭──────────╯
-        ╰───────────────────╯ """
+    """ ╔══════════════════════════════╗
+        ║ Displacing using algorithmic ║
+        ║ displacement map.            ║
+        ╚══════════════════════════════╝ """
 
-    if function_str.get() == 'Askew':  # Linear skew
+    """ ╭─────────────────╮
+        │ Askew (tangent) │
+        ╰─────────────────╯ """
+    if function_str.get() == 'Askew ▰':
         x_slope = math.tan(math.radians(45 * ini_x.get()))
         y_slope = math.tan(math.radians(45 * ini_y.get()))
 
@@ -279,7 +282,10 @@ def RunFilter(event=None) -> None:
             else:
                 return y - x * y_slope
 
-    if function_str.get() == 'Wavy':  # Sine wave
+    """ ╭─────────────╮
+        │ Wavy (sine) │
+        ╰─────────────╯ """
+    if function_str.get() == 'Wavy ∿':
         # ↓ Sine amplitude, controlled via GUI.
         x_strength = ini_x.get()
         y_strength = ini_y.get()
@@ -304,7 +310,57 @@ def RunFilter(event=None) -> None:
         def fy(x, y):
             return y + y_strength * (math.sin(y_period * math.tau * x / X) * Y - math.copysign(Y, y_strength))
 
-    # ↓ displacing
+    """ ╭───────────────────╮
+        │ Toothy ◣ (modulo) │
+        ╰───────────────────╯ """
+    if function_str.get() == 'Toothy ◣':
+        x_strength = X * ini_x.get()
+        y_strength = Y * ini_y.get()
+        # ↓ Modulo tooth size, related to image size.
+        #   Should be controlled via GUI, but I will think about it tomorrow.
+        x_period = 4
+        y_period = 4
+
+        if edge == 'wrap':
+            XNEW = X
+            YNEW = Y
+        else:
+            XNEW = X + int(abs(x_strength))
+            YNEW = Y + int(abs(y_strength))
+
+        def fx(x, y):
+            return x + (x_strength * (0.5 - ((x_period * y % Y) / Y))) - (abs(x_strength) / 2)
+
+        def fy(x, y):
+            return y + (y_strength * (0.5 - ((y_period * x % X) / X))) - (abs(y_strength) / 2)
+
+    """ ╭───────────────────╮
+        │ Toothy 🞂 (modulo) │
+        ╰───────────────────╯ """
+    if function_str.get() == 'Toothy 🞂':
+        x_strength = X * ini_x.get()
+        y_strength = Y * ini_y.get()
+        # ↓ Modulo tooth size, related to image size.
+        #   Should be controlled via GUI, but I will think about it tomorrow.
+        x_period = 4
+        y_period = 4
+
+        if edge == 'wrap':
+            XNEW = X
+            YNEW = Y
+        else:
+            XNEW = X + int(abs(x_strength) / 2)
+            YNEW = Y + int(abs(y_strength) / 2)
+
+        def fx(x, y):
+            return x + (x_strength * (0.5 - abs(((x_period * y % Y) / Y) - 0.5))) - max(0, x_strength / 2)
+
+        def fy(x, y):
+            return y + (y_strength * (0.5 - abs(((y_period * x % X) / X) - 0.5))) - max(0, y_strength / 2)
+
+    """ ╭─────────────────────────────────────────╮
+        │ Displacing according to functions above │
+        ╰─────────────────────────────────────────╯ """
     start = time()
     result_image = displace(source_image, fx, fy, XNEW, YNEW, edge=edge, method=method)
     timing = time() - start
@@ -718,17 +774,19 @@ in02.grid(row=0, column=col)
 col += 1
 
 # ↓ Distortion function
-function_str = StringVar(value='Askew')
+function_str = StringVar(value='Askew ▰')
 function_menu = OptionMenu(
     frame_top,
     function_str,
     *[
-        'Askew',
-        'Wavy',
+        'Askew ▰',
+        'Wavy ∿',
+        'Toothy ◣',
+        'Toothy 🞂',
     ],
 )
 function_menu.grid(row=0, column=col)
-function_menu.configure(indicatoron=True, font=('helvetica', 12), width=6, anchor='e', relief='groove', activebackground='#E5F1FB', state='disabled')
+function_menu.configure(indicatoron=True, font=('helvetica', 12), width=8, anchor='e', relief='groove', activebackground='#E5F1FB', state='disabled')
 function_menu['menu'].configure(font=function_menu['font'])
 
 col += 1

@@ -40,7 +40,10 @@ Instructions for developers on module usage and function input syntax are given 
 
 Shell applications:
 
-- **`distorter.py`**: the main part of demo. Distorter provides examples of general purpose image displacer (`displace.py`) usage. Currently demo includes only two functions: linear skewing and wave-like deformation with sine function;
+- **`distorter.py`**: the main part of demo. Distorter provides examples of using general purpose image displacer (`displace.py`) with various algorithmic displacement functions. Currently demo includes a few functions:
+  - skewing (tangent based);
+  - wavy distortion (sine based);
+  - a couple of toothy distortions (modulo based).
 - **`mdbiggener.py`**: image rescaler; provides a demo for `rescale.py`;
 - **`revolver.py`**: image rotation program. Based entirely on `displace.py`, and separated as specific program just because rotation GUI should take only one argument (i.e. angle), while displacement currently takes two (one for x and other for y). To avoid making a program with only half of GUI being functional, this particular example program was created.
 
