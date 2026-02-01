@@ -41,7 +41,7 @@ __author__ = 'Ilya Razmanov'
 __copyright__ = '(c) 2024-2026 Ilya Razmanov'
 __credits__ = 'Ilya Razmanov'
 __license__ = 'unlicense'
-__version__ = '26.1.30.6'
+__version__ = '26.2.1.9'
 __maintainer__ = 'Ilya Razmanov'
 __email__ = 'ilyarazmanov@gmail.com'
 __status__ = 'Development'
@@ -356,4 +356,4 @@ def rescale(source_image: list[list[list[int]]], XNEW: int, YNEW: int, edge: int
     elif method == 2 or method == 'barycentric':
         return barycentric(source_image, XNEW, YNEW, edge=edge)
     else:
-        raise ValueError('Allowed methods are 1 and 2')
+        raise ValueError('Allowed methods are: "bilinear" (1), "barycentric" (2)')

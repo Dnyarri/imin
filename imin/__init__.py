@@ -42,7 +42,7 @@ __author__ = 'Ilya Razmanov'
 __copyright__ = '(c) 2023-2026 Ilya Razmanov'
 __credits__ = 'Ilya Razmanov'
 __license__ = 'unlicense'
-__version__ = '26.1.30.10'
+__version__ = '26.2.1.9'
 __maintainer__ = 'Ilya Razmanov'
 __email__ = 'ilyarazmanov@gmail.com'
 __status__ = 'Development'
@@ -384,4 +384,4 @@ def pixel(source_image: list[list[list[int]]], x: float, y: float, edge: int | s
     elif method == 0 or method == 'nearest':
         return src(source_image, x, y, edge)
     else:
-        raise ValueError('Allowed methods are 0, 1, 2')
+        raise ValueError('Allowed methods are: "bilinear" (1), "barycentric" (2), "nearest" (0)')
