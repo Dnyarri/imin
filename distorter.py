@@ -23,7 +23,7 @@ __author__ = 'Ilya Razmanov'
 __copyright__ = '(c) 2026 Ilya Razmanov'
 __credits__ = 'Ilya Razmanov'
 __license__ = 'unlicense'
-__version__ = '26.1.31.5'
+__version__ = '26.2.2.8'
 __maintainer__ = 'Ilya Razmanov'
 __email__ = 'ilyarazmanov@gmail.com'
 __status__ = 'Development'
@@ -229,6 +229,127 @@ def GetSource(event=None) -> None:
     zanyato.focus_set()
 
 
+def GetMap() -> tuple[callable, callable, int, int]:
+    """Generate displacement map and  calculate XNEW and YNEW for it."""
+
+    if edge_str.get() == 'Repeat':
+        edge = 'repeat'
+    elif edge_str.get() == 'Wrap':
+        edge = 'wrap'
+    else:
+        edge = 0
+
+    """ ╭─────────────────╮
+        │ Askew (tangent) │
+        ╰─────────────────╯ """
+    if function_str.get() == 'Askew ▰':
+        x_slope = math.tan(math.radians(45 * ini_x.get()))
+        y_slope = math.tan(math.radians(45 * ini_y.get()))
+
+        if edge == 'wrap':
+            XNEW = X
+            YNEW = Y
+        else:
+            XNEW = int((X + abs(Y * x_slope)) / (1 - abs(x_slope * y_slope)))
+            YNEW = int((Y + abs(X * y_slope)) / (1 - abs(x_slope * y_slope)))
+
+        def _fx(x: float, y: float) -> callable:
+            if x_slope < 0:
+                return x - (y - YNEW) * x_slope
+            else:
+                return x - y * x_slope
+
+        def _fy(x: float, y: float) -> callable:
+            if y_slope < 0:
+                return y - (x - XNEW) * y_slope
+            else:
+                return y - x * y_slope
+
+        return (_fx, _fy, XNEW, YNEW)
+
+    """ ╭─────────────╮
+        │ Wavy (sine) │
+        ╰─────────────╯ """
+    if function_str.get() == 'Wavy ∿':
+        # ↓ Sine amplitude, controlled via GUI.
+        x_strength = ini_x.get()
+        y_strength = ini_y.get()
+        # ↓ Sine frequency, related to image size.
+        #   Should be controlled via GUI, but I will think about it tomorrow.
+        x_period = 1
+        y_period = 1
+
+        if edge == 'wrap':
+            XNEW = X
+            YNEW = Y
+        else:
+            XNEW = X + int(abs(x_strength) * X * 2)
+            YNEW = Y + int(abs(y_strength) * Y * 2)
+
+        def _fx(x: float, y: float) -> callable:
+            return x + x_strength * (math.sin(x_period * math.tau * y / Y) * X - math.copysign(X, x_strength))
+            # ↑ Sine output range is -1..1, input full circle is tau radians.
+            #   .copysign is used to always offset whole thing to positive
+            #   to avoid cutting edges off.
+
+        def _fy(x: float, y: float) -> callable:
+            return y + y_strength * (math.sin(y_period * math.tau * x / X) * Y - math.copysign(Y, y_strength))
+
+        return (_fx, _fy, XNEW, YNEW)
+
+    """ ╭───────────────────╮
+        │ Toothy ◣ (modulo) │
+        ╰───────────────────╯ """
+    if function_str.get() == 'Toothy ◣':
+        x_strength = X * ini_x.get()
+        y_strength = Y * ini_y.get()
+        # ↓ Modulo tooth size, related to image size.
+        #   Should be controlled via GUI, but I will think about it tomorrow.
+        x_period = 4
+        y_period = 4
+
+        if edge == 'wrap':
+            XNEW = X
+            YNEW = Y
+        else:
+            XNEW = X + int(abs(x_strength))
+            YNEW = Y + int(abs(y_strength))
+
+        def _fx(x: float, y: float) -> callable:
+            return x + (x_strength * (0.5 - ((x_period * y % Y) / Y))) - (abs(x_strength) / 2)
+
+        def _fy(x: float, y: float) -> callable:
+            return y + (y_strength * (0.5 - ((y_period * x % X) / X))) - (abs(y_strength) / 2)
+
+        return (_fx, _fy, XNEW, YNEW)
+
+    """ ╭───────────────────╮
+        │ Toothy 🞂 (modulo) │
+        ╰───────────────────╯ """
+    if function_str.get() == 'Toothy 🞂':
+        x_strength = X * ini_x.get()
+        y_strength = Y * ini_y.get()
+        # ↓ Modulo tooth size, related to image size.
+        #   Should be controlled via GUI, but I will think about it tomorrow.
+        x_period = 4
+        y_period = 4
+
+        if edge == 'wrap':
+            XNEW = X
+            YNEW = Y
+        else:
+            XNEW = X + int(abs(x_strength) / 2)
+            YNEW = Y + int(abs(y_strength) / 2)
+
+        def _fx(x: float, y: float) -> callable:
+            return x + (x_strength * (0.5 - abs(((x_period * y % Y) / Y) - 0.5))) - max(0, x_strength / 2)
+
+        def _fy(x: float, y: float) -> callable:
+            return y + (y_strength * (0.5 - abs(((y_period * x % X) / X) - 0.5))) - max(0, y_strength / 2)
+
+        return (_fx, _fy, XNEW, YNEW)
+
+
 def RunFilter(event=None) -> None:
     """Filter image, then preview result."""
 
@@ -251,116 +372,12 @@ def RunFilter(event=None) -> None:
 
     UIBusy()
 
-    """ ╔══════════════════════════════╗
-        ║ Displacing using algorithmic ║
-        ║ displacement map.            ║
-        ╚══════════════════════════════╝ """
+    """ ╭─────────────────────────╮
+        │ Displacing according to │ 
+        │ functions from GetMap() │
+        ╰─────────────────────────╯ """
+    fx, fy, XNEW, YNEW = GetMap()
 
-    """ ╭─────────────────╮
-        │ Askew (tangent) │
-        ╰─────────────────╯ """
-    if function_str.get() == 'Askew ▰':
-        x_slope = math.tan(math.radians(45 * ini_x.get()))
-        y_slope = math.tan(math.radians(45 * ini_y.get()))
-
-        if edge == 'wrap':
-            XNEW = X
-            YNEW = Y
-        else:
-            XNEW = int((X + abs(Y * x_slope)) / (1 - abs(x_slope * y_slope)))
-            YNEW = int((Y + abs(X * y_slope)) / (1 - abs(x_slope * y_slope)))
-
-        def fx(x, y):
-            if x_slope < 0:
-                return x - (y - YNEW) * x_slope
-            else:
-                return x - y * x_slope
-
-        def fy(x, y):
-            if y_slope < 0:
-                return y - (x - XNEW) * y_slope
-            else:
-                return y - x * y_slope
-
-    """ ╭─────────────╮
-        │ Wavy (sine) │
-        ╰─────────────╯ """
-    if function_str.get() == 'Wavy ∿':
-        # ↓ Sine amplitude, controlled via GUI.
-        x_strength = ini_x.get()
-        y_strength = ini_y.get()
-        # ↓ Sine frequency, related to image size.
-        #   Should be controlled via GUI, but I will think about it tomorrow.
-        x_period = 1
-        y_period = 1
-
-        if edge == 'wrap':
-            XNEW = X
-            YNEW = Y
-        else:
-            XNEW = X + int(abs(x_strength) * X * 2)
-            YNEW = Y + int(abs(y_strength) * Y * 2)
-
-        def fx(x, y):
-            return x + x_strength * (math.sin(x_period * math.tau * y / Y) * X - math.copysign(X, x_strength))
-            # ↑ Sine output range is -1..1, input full circle is tau radians.
-            #   .copysign is used to always offset whole thing to positive
-            #   to avoid cutting edges off.
-
-        def fy(x, y):
-            return y + y_strength * (math.sin(y_period * math.tau * x / X) * Y - math.copysign(Y, y_strength))
-
-    """ ╭───────────────────╮
-        │ Toothy ◣ (modulo) │
-        ╰───────────────────╯ """
-    if function_str.get() == 'Toothy ◣':
-        x_strength = X * ini_x.get()
-        y_strength = Y * ini_y.get()
-        # ↓ Modulo tooth size, related to image size.
-        #   Should be controlled via GUI, but I will think about it tomorrow.
-        x_period = 4
-        y_period = 4
-
-        if edge == 'wrap':
-            XNEW = X
-            YNEW = Y
-        else:
-            XNEW = X + int(abs(x_strength))
-            YNEW = Y + int(abs(y_strength))
-
-        def fx(x, y):
-            return x + (x_strength * (0.5 - ((x_period * y % Y) / Y))) - (abs(x_strength) / 2)
-
-        def fy(x, y):
-            return y + (y_strength * (0.5 - ((y_period * x % X) / X))) - (abs(y_strength) / 2)
-
-    """ ╭───────────────────╮
-        │ Toothy 🞂 (modulo) │
-        ╰───────────────────╯ """
-    if function_str.get() == 'Toothy 🞂':
-        x_strength = X * ini_x.get()
-        y_strength = Y * ini_y.get()
-        # ↓ Modulo tooth size, related to image size.
-        #   Should be controlled via GUI, but I will think about it tomorrow.
-        x_period = 4
-        y_period = 4
-
-        if edge == 'wrap':
-            XNEW = X
-            YNEW = Y
-        else:
-            XNEW = X + int(abs(x_strength) / 2)
-            YNEW = Y + int(abs(y_strength) / 2)
-
-        def fx(x, y):
-            return x + (x_strength * (0.5 - abs(((x_period * y % Y) / Y) - 0.5))) - max(0, x_strength / 2)
-
-        def fy(x, y):
-            return y + (y_strength * (0.5 - abs(((y_period * x % X) / X) - 0.5))) - max(0, y_strength / 2)
-
-    """ ╭─────────────────────────────────────────╮
-        │ Displacing according to functions above │
-        ╰─────────────────────────────────────────╯ """
     start = time()
     result_image = displace(source_image, fx, fy, XNEW, YNEW, edge=edge, method=method)
     timing = time() - start
