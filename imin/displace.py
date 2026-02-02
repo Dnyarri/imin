@@ -11,8 +11,8 @@ where
 
 - ``source_image``: source image 3D nested list; coordinate system match Photoshop,
 i.e. origin is top left corner, channels order is LA or RGBA from 0 to top;
-- ``fx``: actual x coordinate to read as a function of formal x, y counters;
-- ``fy``: actual y coordinate to read as a function of formal x, y counters;
+- ``fx``: actual x coordinate to read as a function of (x, y) requested;
+- ``fy``: actual y coordinate to read as a function of (x, y) requested;
 - ``XNEW``: ``result_image`` width, pixels;
 - ``YNEW``: ``result_image`` height, pixels;
 - ``edge``: edge extrapolation mode:
@@ -43,7 +43,7 @@ __author__ = 'Ilya Razmanov'
 __copyright__ = '(c) 2024-2026 Ilya Razmanov'
 __credits__ = 'Ilya Razmanov'
 __license__ = 'unlicense'
-__version__ = '26.2.1.9'
+__version__ = '26.2.2.8'
 __maintainer__ = 'Ilya Razmanov'
 __email__ = 'ilyarazmanov@gmail.com'
 __status__ = 'Development'
@@ -84,23 +84,24 @@ def _src(source_image: list[list[list[int]]], x: int | float, y: int | float, ed
 
 
 # ↓ Singe pass displacement, bilinear interpolation, configurable edge modes
-def bilinear(source_image: list[list[list[int]]], fx, fy, XNEW: int, YNEW: int, edge: int | str) -> list[list[list[int]]]:
+def bilinear(source_image: list[list[list[int]]], fx: callable, fy: callable, XNEW: int, YNEW: int, edge: int | str) -> list[list[list[int]]]:
     """Bilinear image displacement according to ``fx`` and ``fy`` functions.
 
     :param source_image: source image 3D list, coordinate system match Photoshop,
     i.e. origin is top left corner, channels order is LA or RGBA from bottom to top;
     :type source_image: list[list[list[int]]]
-    :param fx: actual x coordinate to read as a function of formal x, y counters
-    :type fx: function
-    :param fy: actual y coordinate to read as a function of formal x, y counters
-    :type fy: function
+    :param fx: actual x coordinate to read as a function of (x, y) requested;
+    :type fx: function[float, float] -> float
+    :param fy: actual y coordinate to read as a function of (x, y) requested;
+    :type fy: function[float, float] -> float
     :param int XNEW: ``result_image`` width, pixels;
     :param int YNEW: ``result_image`` height, pixels;
     :param int | str edge: edge extrapolation mode:
 
         - ``edge=1`` or ``edge='repeat'``: repeat edge, like Photoshop;
         - ``edge=2`` or ``edge='wrap'``: wrap around;
-        - ``edge=``other: extrapolate with zeroes. Alpha=0 correspond to transparent.
+        - ``edge=``other: extrapolate with zeroes.
+          Alpha=0 correspond to transparent.
     :return: image, distorted according to ``fx``, ``fy`` rules.
     :rtype: list[list[list[int]]]
 
@@ -160,23 +161,24 @@ def bilinear(source_image: list[list[list[int]]], fx, fy, XNEW: int, YNEW: int, 
 
 
 # ↓ Singe pass displacement, barycentric interpolation, configurable edge modes
-def barycentric(source_image: list[list[list[int]]], fx, fy, XNEW: int, YNEW: int, edge: int | str) -> list[list[list[int]]]:
+def barycentric(source_image: list[list[list[int]]], fx: callable, fy: callable, XNEW: int, YNEW: int, edge: int | str) -> list[list[list[int]]]:
     """Barycentric image displacement according to ``fx`` and ``fy`` functions.
 
     :param source_image: source image 3D list, coordinate system match Photoshop,
     i.e. origin is top left corner, channels order is LA or RGBA from bottom to top;
     :type source_image: list[list[list[int]]]
-    :param fx: actual x coordinate to read as a function of formal x, y counters
-    :type fx: function
-    :param fy: actual y coordinate to read as a function of formal x, y counters
-    :type fy: function
+    :param fx: actual x coordinate to read as a function of (x, y) requested;
+    :type fx: function[float, float] -> float
+    :param fy: actual y coordinate to read as a function of (x, y) requested;
+    :type fy: function[float, float] -> float
     :param int XNEW: ``result_image`` width, pixels;
     :param int YNEW: ``result_image`` height, pixels;
     :param int | str edge: edge extrapolation mode:
 
         - ``edge=1`` or ``edge='repeat'``: repeat edge, like Photoshop;
         - ``edge=2`` or ``edge='wrap'``: wrap around;
-        - ``edge=``other: extrapolate with zeroes. Alpha=0 correspond to transparent.
+        - ``edge=``other: extrapolate with zeroes.
+          Alpha=0 correspond to transparent.
     :return: image, distorted according to ``fx``, ``fy`` rules.
     :rtype: list[list[list[int]]]
 
@@ -284,23 +286,24 @@ def barycentric(source_image: list[list[list[int]]], fx, fy, XNEW: int, YNEW: in
 
 
 # ↓ Image displacement, configurable interpolation, configurable edge modes
-def displace(source_image: list[list[list[int]]], fx, fy, XNEW: int, YNEW: int, edge: int | str = 0, method: int | str = 'bilinear') -> list[list[list[int]]]:
+def displace(source_image: list[list[list[int]]], fx: callable, fy: callable, XNEW: int, YNEW: int, edge: int | str = 0, method: int | str = 'bilinear') -> list[list[list[int]]]:
     """Image displacement according to ``fx`` and ``fy`` functions, using bilinear or barycentric interpolation depending on ``method``.
 
     :param source_image: source image 3D list, coordinate system match Photoshop,
     i.e. origin is top left corner, channels order is LA or RGBA from bottom to top;
     :type source_image: list[list[list[int]]]
-    :param fx: actual x coordinate to read as a function of formal x, y counters
-    :type fx: function
-    :param fy: actual y coordinate to read as a function of formal x, y counters
-    :type fy: function
+    :param fx: actual x coordinate to read as a function of (x, y) requested;
+    :type fx: function[float, float] -> float
+    :param fy: actual y coordinate to read as a function of (x, y) requested;
+    :type fy: function[float, float] -> float
     :param int XNEW: ``result_image`` width, pixels;
     :param int YNEW: ``result_image`` height, pixels;
     :param int | str edge: edge extrapolation mode:
 
         - ``edge=1`` or ``edge='repeat'``: repeat edge, like Photoshop;
         - ``edge=2`` or ``edge='wrap'``: wrap around;
-        - ``edge=``other: extrapolate with zeroes. Alpha=0 correspond to transparent.
+        - ``edge=``other: extrapolate with zeroes.
+          Alpha=0 correspond to transparent.
     :param int | str method: interpolation method
 
         - ``method=2`` or ``method='barycentric'``: barycentric interpolation;

@@ -42,7 +42,7 @@ __author__ = 'Ilya Razmanov'
 __copyright__ = '(c) 2023-2026 Ilya Razmanov'
 __credits__ = 'Ilya Razmanov'
 __license__ = 'unlicense'
-__version__ = '26.2.1.9'
+__version__ = '26.2.2.8'
 __maintainer__ = 'Ilya Razmanov'
 __email__ = 'ilyarazmanov@gmail.com'
 __status__ = 'Development'
@@ -66,7 +66,7 @@ def src(source_image: list[list[list[int]]], x: int | float, y: int | float, edg
         - ``edge=1`` or ``edge='repeat'``: repeat edge, like Photoshop;
         - ``edge=2`` or ``edge='wrap'``: wrap around;
         - ``edge=``other: extrapolate with zeroes.
-            Alpha=0 correspond to transparent.
+          Alpha=0 correspond to transparent.
     :return: pixel(x, y) value.
     :rtype: list[int]
 
@@ -112,7 +112,7 @@ def blin(source_image: list[list[list[int]]], x: float, y: float, edge: int | st
         - ``edge=1`` or ``edge='repeat'``: repeat edge, like Photoshop;
         - ``edge=2`` or ``edge='wrap'``: wrap around;
         - ``edge=``other: extrapolate with zeroes.
-            Alpha=0 correspond to transparent.
+          Alpha=0 correspond to transparent.
     :return: interpolated pixel(x, y) value.
     :rtype: list[int]
 
@@ -212,7 +212,7 @@ def baryc(source_image: list[list[list[int]]], x: float, y: float, edge: int | s
         - ``edge=1`` or ``edge='repeat'``: repeat edge, like Photoshop;
         - ``edge=2`` or ``edge='wrap'``: wrap around;
         - ``edge=``other: extrapolate with zeroes.
-            Alpha=0 correspond to transparent.
+          Alpha=0 correspond to transparent.
     :return: interpolated pixel(x, y) value.
     :rtype: list[int]
 
@@ -366,7 +366,7 @@ def pixel(source_image: list[list[list[int]]], x: float, y: float, edge: int | s
         - ``edge=1`` or ``edge='repeat'``: repeat edge, like Photoshop;
         - ``edge=2`` or ``edge='wrap'``: wrap around;
         - ``edge=``other: extrapolate with zeroes.
-            Alpha=0 correspond to transparent.
+          Alpha=0 correspond to transparent.
     :param int | str method: pixel interpolation method:
 
         - ``method=2`` or ``method='barycentric'``: barycentric interpolation;

@@ -41,7 +41,7 @@ __author__ = 'Ilya Razmanov'
 __copyright__ = '(c) 2024-2026 Ilya Razmanov'
 __credits__ = 'Ilya Razmanov'
 __license__ = 'unlicense'
-__version__ = '26.2.1.9'
+__version__ = '26.2.2.8'
 __maintainer__ = 'Ilya Razmanov'
 __email__ = 'ilyarazmanov@gmail.com'
 __status__ = 'Development'
@@ -94,8 +94,9 @@ def bilinear(source_image: list[list[list[int]]], XNEW: int, YNEW: int, edge: in
 
         - ``edge=1`` or ``edge='repeat'``: repeat edge, like Photoshop;
         - ``edge=2`` or ``edge='wrap'``: wrap around;
-        - ``edge=``other: extrapolate with zeroes. Alpha=0 correspond to transparent.
-    :return: image, rescaled from ``X``, ``Y`` to ``XNEW``, ``YNEW`` size
+        - ``edge=``other: extrapolate with zeroes.
+          Alpha=0 correspond to transparent.
+    :return: image, rescaled from ``X``, ``Y`` to ``XNEW``, ``YNEW`` size.
     :rtype: list[list[list[int]]]
 
     """
@@ -206,8 +207,9 @@ def barycentric(source_image: list[list[list[int]]], XNEW: int, YNEW: int, edge:
 
         - ``edge=1`` or ``edge='repeat'``: repeat edge, like Photoshop;
         - ``edge=2`` or ``edge='wrap'``: wrap around;
-        - ``edge=``other: extrapolate with zeroes. Alpha=0 correspond to transparent.
-    :return: image, rescaled from ``X``, ``Y`` to ``XNEW``, ``YNEW`` size
+        - ``edge=``other: extrapolate with zeroes.
+          Alpha=0 correspond to transparent.
+    :return: image, rescaled from ``X``, ``Y`` to ``XNEW``, ``YNEW`` size.
     :rtype: list[list[list[int]]]
 
     """
@@ -341,12 +343,13 @@ def rescale(source_image: list[list[list[int]]], XNEW: int, YNEW: int, edge: int
 
         - ``edge=1`` or ``edge='repeat'``: repeat edge, like Photoshop;
         - ``edge=2`` or ``edge='wrap'``: wrap around;
-        - ``edge=``other: extrapolate with zeroes. Alpha=0 correspond to transparent.
+        - ``edge=``other: extrapolate with zeroes.
+          Alpha=0 correspond to transparent.
     :param int | str method: interpolation method
 
         - ``method=2`` or ``method='barycentric'``: barycentric interpolation;
         - ``method=1`` or ``method='bilinear'``: bilinear interpolation;
-    :return: image, rescaled from ``X``, ``Y`` to ``XNEW``, ``YNEW`` size
+    :return: image, rescaled from ``X``, ``Y`` to ``XNEW``, ``YNEW`` size.
     :rtype: list[list[list[int]]]
 
     """
