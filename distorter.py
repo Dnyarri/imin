@@ -23,7 +23,7 @@ __author__ = 'Ilya Razmanov'
 __copyright__ = '(c) 2026 Ilya Razmanov'
 __credits__ = 'Ilya Razmanov'
 __license__ = 'unlicense'
-__version__ = '26.2.2.8'
+__version__ = '26.2.4.6'
 __maintainer__ = 'Ilya Razmanov'
 __email__ = 'ilyarazmanov@gmail.com'
 __status__ = 'Development'
@@ -72,7 +72,7 @@ def ShowInfo(event=None) -> None:
 
 
 def UINormal() -> None:
-    """Normal UI state, buttons enabled."""
+    """Normal UI state, controls enabled."""
 
     for widget in frame_top.winfo_children():
         if widget.winfo_class() in ('Label', 'Button', 'Spinbox', 'OptionMenu', 'Checkbutton'):
@@ -87,7 +87,7 @@ def UINormal() -> None:
 
 
 def UIBusy() -> None:
-    """Busy UI state, buttons disabled."""
+    """Busy UI state, controls disabled."""
 
     for widget in frame_top.winfo_children():
         if widget.winfo_class() in ('Label', 'Button', 'Spinbox', 'OptionMenu', 'Checkbutton'):
@@ -620,11 +620,11 @@ zoom_factor = 0
 view_src = True
 is_filtered = False
 timing = None
-product_name = 'Distorter'
+product_name = 'Dist⧣rter'
 
 sortir = Tk()
 
-sortir.iconphoto(True, PhotoImage(data='P6\n8 8\n255\n'.encode(encoding='ascii') + randbytes(8 * 8 * 3)))
+sortir.iconphoto(True, PhotoImage(data='P6\n2 2\n255\n'.encode(encoding='ascii') + randbytes(2 * 2 * 3)))
 sortir.title(product_name)
 
 validate_entry = sortir.register(valiDig)

@@ -23,7 +23,7 @@ __author__ = 'Ilya Razmanov'
 __copyright__ = '(c) 2025-2026 Ilya Razmanov'
 __credits__ = 'Ilya Razmanov'
 __license__ = 'unlicense'
-__version__ = '26.1.28.18'
+__version__ = '26.2.4.6'
 __maintainer__ = 'Ilya Razmanov'
 __email__ = 'ilyarazmanov@gmail.com'
 __status__ = 'Development'
@@ -38,6 +38,7 @@ from tkinter.messagebox import showinfo
 
 from pypng.pnglpng import list2png, png2list
 from pypnm.pnmlpnm import list2bin, list2pnm, pnm2list
+
 from imin.rescale import rescale
 
 """ ╔══════════════════════════════════╗
@@ -70,7 +71,7 @@ def ShowInfo(event=None) -> None:
 
 
 def UINormal() -> None:
-    """Normal UI state, buttons enabled."""
+    """Normal UI state, controls enabled."""
 
     for widget in frame_top.winfo_children():
         if widget.winfo_class() in ('Label', 'Button', 'OptionMenu', 'Checkbutton', 'Entry'):
@@ -83,7 +84,7 @@ def UINormal() -> None:
 
 
 def UIBusy() -> None:
-    """Busy UI state, buttons disabled."""
+    """Busy UI state, controls disabled."""
 
     for widget in frame_top.winfo_children():
         if widget.winfo_class() in ('Label', 'Button', 'OptionMenu', 'Checkbutton', 'Entry'):
@@ -532,11 +533,11 @@ zoom_factor = 0
 view_src = True
 is_filtered = False
 timing = None
-product_name = '[Em|De]biggener'
+product_name = '[Em⇅De]biggener'  # ⇅ ⥮ ⥍
 
 sortir = Tk()
 
-sortir.iconphoto(True, PhotoImage(data='P6\n8 8\n255\n'.encode(encoding='ascii') + randbytes(8 * 8 * 3)))
+sortir.iconphoto(True, PhotoImage(data='P6\n2 2\n255\n'.encode(encoding='ascii') + randbytes(2 * 2 * 3)))
 sortir.title(product_name)
 
 validate_entry = sortir.register(valiDig)

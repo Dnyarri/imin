@@ -4,15 +4,15 @@
 
 Currently **imin** repository contains code for barycentric and bilinear image interpolation.
 
-[Bilinear image interpolation](https://en.wikipedia.org/wiki/Bilinear_interpolation) works by considering pixel as ■ square, and performing interpolation between four corners.
+[Bilinear image interpolation](https://en.wikipedia.org/wiki/Bilinear_interpolation) works by considering pixel as ⬛ square, and performing interpolation between four corners.
 
-Barycentric image interpolation, the most interesting part of the module, works by dividing ■ pixel square onto either ◤◢ or ◣◥ subtriangles, and performing interpolation within a triangle using [barycentric coordinates](https://en.wikipedia.org/wiki/Barycentric_coordinate_system).
+Barycentric image interpolation, the most interesting part of the module, works by dividing ⬛ pixel square onto either ◤◢ or ◣◥ subtriangles, and performing interpolation within a triangle using [barycentric coordinates](https://en.wikipedia.org/wiki/Barycentric_coordinate_system).
 
 This branch, **"Functional"**, specifically, contain **imin** module version to be used as functions, not classes, and several shell applications to show the module in action.
 
 ## Figures
 
-Some illustrations of difference between bilinear and barycentric interpolations are given below.
+Some illustrations of difference between bilinear and barycentric interpolation are given below.
 
 | Source | Bilinear interpolation | Barycentric interpolation |
 | :---: | :---: | :---: |
@@ -30,7 +30,7 @@ Above you can see an example of upscaling a photo fragment 5 times. It seems tha
 
 ## Files
 
-Module **imin**:
+### Module **imin**
 
 - **`__init__.py`**: This is not just an init file. Actually, it contains all code required to read image pixel at float coordinates, interpolated from surrounding pixels using either barycentric or bilinear method. If reading image pixels is all you need, you may copy `__init__.py` file alone and use it for your applications. Remember that I don't give a care to legal stuff, so you can use my code for free, completely or partially, and modify at will.
 - **`displace.py`**: General purpose image displacement using either barycentric or bilinear interpolation. Exact type of displacement is controlled by fx(x, y) and fy(x, y) functions, given to `displace` as arguments.
@@ -38,7 +38,7 @@ Module **imin**:
 
 Instructions for developers on module usage and function input syntax are given in a rather prolific docstrings. Also, you may always take a look at the source of sample GUI shell applications, listed below.
 
-Shell applications:
+### Shell applications
 
 - **`distorter.py`**: the main part of demo. Distorter provides examples of using general purpose image displacer (`displace.py`) with various algorithmic displacement functions. Currently demo includes a few functions:
   - skewing (tangent based);
@@ -59,13 +59,13 @@ Shell programs GUI provides whole set of interpolation options; however, they do
 ## Prerequisite and Dependencies
 
 1. [Python](https://www.python.org/ "CPython") 3.11 or above.
-2. [PyPNG](https://gitlab.com/drj11/pypng "Pure Python PNG format module"). Copy included into current img2mesh distribution.
-3. [PyPNM](https://pypi.org/project/PyPNM/ "Pure Python PPM and PGM format module"). Copy included into current img2mesh distribution.
+2. [PyPNG](https://gitlab.com/drj11/pypng "Pure Python PNG format module"). Copy included into current **imin** distribution.
+3. [PyPNM](https://pypi.org/project/PyPNM/ "Pure Python PPM and PGM format module"). Copy included into current **imin** distribution.
 4. Tkinter. Normally included into standard CPython distribution.
 
 ## Links
 
-[Barycentric and bilinear image interpolation explanatory page](https://dnyarri.github.io/imin.html "Barycentric and bilinear image interpolation in pure Python - explanatory page")
+[Barycentric and bilinear image interpolation explanatory page with illustrations](https://dnyarri.github.io/imin.html "Barycentric and bilinear image interpolation in pure Python - explanatory page with illustrations")
 
 [Barycentric and bilinear image interpolation source code at Github](https://github.com/Dnyarri/imin "Barycentric and bilinear image interpolation in pure Python - source code at Github")
 
