@@ -11,7 +11,11 @@ Output: PNG, PPM, PGM.
 
 .. _The Toad's Slimy Mudhole: https://dnyarri.github.io/
 
-**imin** Git repositories: `@Github`_, `@Gitflic`_.
+**Project page**: `imin`_
+
+.. _imin: https://dnyarri.github.io/imin.html
+
+**imin** Git repositories: main `@Github`_ and mirror `@Gitflic`_.
 
 .. _@Github: https://github.com/Dnyarri/imin
 
@@ -23,7 +27,7 @@ __author__ = 'Ilya Razmanov'
 __copyright__ = '(c) 2025-2026 Ilya Razmanov'
 __credits__ = 'Ilya Razmanov'
 __license__ = 'unlicense'
-__version__ = '26.2.4.6'
+__version__ = '26.2.6.16'
 __maintainer__ = 'Ilya Razmanov'
 __email__ = 'ilyarazmanov@gmail.com'
 __status__ = 'Development'
@@ -537,7 +541,7 @@ product_name = '[Em⇅De]biggener'  # ⇅ ⥮ ⥍
 
 sortir = Tk()
 
-sortir.iconphoto(True, PhotoImage(data='P6\n2 2\n255\n'.encode(encoding='ascii') + randbytes(2 * 2 * 3)))
+sortir.iconphoto(True, PhotoImage(data='P6\n3 3\n255\n'.encode(encoding='ascii') + randbytes(3 * 3 * 3)))
 sortir.title(product_name)
 
 validate_entry = sortir.register(valiDig)

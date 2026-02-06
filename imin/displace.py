@@ -1,4 +1,4 @@
-"""Generalized image displacement using bilinear or barycentric interpolation.
+"""Generalized image pixels displacement using bilinear or barycentric interpolation.
 
 Usage
 -----
@@ -31,7 +31,11 @@ Return ``result_image`` 3D list of the same structure as ``source_image``.
 
 .. _The Toad's Slimy Mudhole: https://dnyarri.github.io/
 
-**imin** Git repositories: `@Github`_, `@Gitflic`_.
+**Project page**: `imin`_
+
+.. _imin: https://dnyarri.github.io/imin.html
+
+**imin** Git repositories: main `@Github`_ and mirror `@Gitflic`_.
 
 .. _@Github: https://github.com/Dnyarri/imin
 
@@ -43,7 +47,7 @@ __author__ = 'Ilya Razmanov'
 __copyright__ = '(c) 2024-2026 Ilya Razmanov'
 __credits__ = 'Ilya Razmanov'
 __license__ = 'unlicense'
-__version__ = '26.2.2.8'
+__version__ = '26.2.6.16'
 __maintainer__ = 'Ilya Razmanov'
 __email__ = 'ilyarazmanov@gmail.com'
 __status__ = 'Development'
@@ -88,7 +92,8 @@ def bilinear(source_image: list[list[list[int]]], fx: callable, fy: callable, XN
     """Bilinear image displacement according to ``fx`` and ``fy`` functions.
 
     :param source_image: source image 3D list, coordinate system match Photoshop,
-    i.e. origin is top left corner, channels order is LA or RGBA from bottom to top;
+        i.e. origin is top left corner, channels order is
+        LA or RGBA from bottom to top;
     :type source_image: list[list[list[int]]]
     :param fx: actual x coordinate to read as a function of (x, y) requested;
     :type fx: function[float, float] -> float
@@ -165,7 +170,8 @@ def barycentric(source_image: list[list[list[int]]], fx: callable, fy: callable,
     """Barycentric image displacement according to ``fx`` and ``fy`` functions.
 
     :param source_image: source image 3D list, coordinate system match Photoshop,
-    i.e. origin is top left corner, channels order is LA or RGBA from bottom to top;
+        i.e. origin is top left corner, channels order is
+        LA or RGBA from bottom to top;
     :type source_image: list[list[list[int]]]
     :param fx: actual x coordinate to read as a function of (x, y) requested;
     :type fx: function[float, float] -> float
@@ -290,7 +296,8 @@ def displace(source_image: list[list[list[int]]], fx: callable, fy: callable, XN
     """Image displacement according to ``fx`` and ``fy`` functions, using bilinear or barycentric interpolation depending on ``method``.
 
     :param source_image: source image 3D list, coordinate system match Photoshop,
-    i.e. origin is top left corner, channels order is LA or RGBA from bottom to top;
+        i.e. origin is top left corner, channels order is
+        LA or RGBA from bottom to top;
     :type source_image: list[list[list[int]]]
     :param fx: actual x coordinate to read as a function of (x, y) requested;
     :type fx: function[float, float] -> float

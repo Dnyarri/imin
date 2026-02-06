@@ -29,7 +29,11 @@ Return ``result_image`` 3D list of the same structure as ``source_image``.
 
 .. _The Toad's Slimy Mudhole: https://dnyarri.github.io/
 
-**imin** Git repositories: `@Github`_, `@Gitflic`_.
+**Project page**: `imin`_
+
+.. _imin: https://dnyarri.github.io/imin.html
+
+**imin** Git repositories: main `@Github`_ and mirror `@Gitflic`_.
 
 .. _@Github: https://github.com/Dnyarri/imin
 
@@ -41,7 +45,7 @@ __author__ = 'Ilya Razmanov'
 __copyright__ = '(c) 2024-2026 Ilya Razmanov'
 __credits__ = 'Ilya Razmanov'
 __license__ = 'unlicense'
-__version__ = '26.2.2.8'
+__version__ = '26.2.6.16'
 __maintainer__ = 'Ilya Razmanov'
 __email__ = 'ilyarazmanov@gmail.com'
 __status__ = 'Development'
@@ -86,7 +90,8 @@ def bilinear(source_image: list[list[list[int]]], XNEW: int, YNEW: int, edge: in
     """Bilinear image rescale, two subsequent 1D passes.
 
     :param source_image: source image 3D list, coordinate system match Photoshop,
-    i.e. origin is top left corner, channels order LA or RGBA from bottom to top;
+        i.e. origin is top left corner, channels order is
+        LA or RGBA from bottom to top;
     :type source_image: list[list[list[int]]]
     :param int XNEW: ``result_image`` width, pixels;
     :param int YNEW: ``result_image`` height, pixels;
@@ -199,7 +204,8 @@ def barycentric(source_image: list[list[list[int]]], XNEW: int, YNEW: int, edge:
     """Barycentric image rescale.
 
     :param source_image: source image 3D list, coordinate system match Photoshop,
-    i.e. origin is top left corner, channels order LA or RGBA from bottom to top;
+        i.e. origin is top left corner, channels order is
+        LA or RGBA from bottom to top;
     :type source_image: list[list[list[int]]]
     :param int XNEW: ``result_image`` width, pixels;
     :param int YNEW: ``result_image`` height, pixels;
@@ -335,7 +341,8 @@ def rescale(source_image: list[list[list[int]]], XNEW: int, YNEW: int, edge: int
     """Image rescaling, using bilinear or barycentric interpolation depending on ``method``.
 
     :param source_image: source image 3D list, coordinate system match Photoshop,
-    i.e. origin is top left corner, channels order is LA or RGBA from bottom to top;
+        i.e. origin is top left corner, channels order is
+        LA or RGBA from bottom to top;
     :type source_image: list[list[list[int]]]
     :param int XNEW: ``result_image`` width, pixels;
     :param int YNEW: ``result_image`` height, pixels;

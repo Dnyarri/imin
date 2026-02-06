@@ -7,7 +7,7 @@ Usage
 
     pixelvalue = pixel(source_image, x, y, edge, method)
 
-where
+where:
 
 - ``source_image``: source image 3D nested list; coordinate system match Photoshop,
 i.e. origin is top left corner, channels order is LA or RGBA from 0 to top;
@@ -30,7 +30,11 @@ Return pixel value as list[int] of channel values.
 
 .. _The Toad's Slimy Mudhole: https://dnyarri.github.io/
 
-**imin** Git repositories: `@Github`_, `@Gitflic`_.
+**Project page**: `imin`_
+
+.. _imin: https://dnyarri.github.io/imin.html
+
+**imin** Git repositories: main `@Github`_ and mirror `@Gitflic`_.
 
 .. _@Github: https://github.com/Dnyarri/imin
 
@@ -42,7 +46,7 @@ __author__ = 'Ilya Razmanov'
 __copyright__ = '(c) 2023-2026 Ilya Razmanov'
 __credits__ = 'Ilya Razmanov'
 __license__ = 'unlicense'
-__version__ = '26.2.2.8'
+__version__ = '26.2.6.16'
 __maintainer__ = 'Ilya Razmanov'
 __email__ = 'ilyarazmanov@gmail.com'
 __status__ = 'Development'
