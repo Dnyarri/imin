@@ -510,6 +510,8 @@ def valiDig(new_value):
     """Try to block non-integer input."""
 
     try:
+        if new_value.startswith('0'):  # Block for Tkinter problem. Perhaps I'd better go for IntVar
+            return False
         _ = int(new_value)
         if _ > 1 and _ < 5121:  # maximum set so I can upscale my 1024x1024 test images x5 times
             return True
