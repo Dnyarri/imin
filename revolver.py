@@ -27,7 +27,7 @@ __author__ = 'Ilya Razmanov'
 __copyright__ = '(c) 2025-2026 Ilya Razmanov'
 __credits__ = 'Ilya Razmanov'
 __license__ = 'unlicense'
-__version__ = '26.2.6.16'
+__version__ = '26.2.7.7'
 __maintainer__ = 'Ilya Razmanov'
 __email__ = 'ilyarazmanov@gmail.com'
 __status__ = 'Development'
@@ -222,9 +222,12 @@ def GetSource(event=None) -> None:
         color_mode_str = ''  # Just in case
     sortir.title(f'{product_name}: {Path(sourcefilename).name}{color_mode_str}{"*" if is_filtered else ""}')
     info_normal = {'txt': f'{Path(sourcefilename).name}{"*" if is_filtered else ""} X={X} Y={Y} Z={Z} maxcolors={maxcolors}', 'fg': 'grey', 'bg': 'grey90'}
-    # ↓ enabling "Filter"
+    # ↓ "Filter" mouseover
     butt_filter.bind('<Enter>', lambda event=None: butt_filter.config(foreground=butt['activeforeground'], background=butt['activebackground']))
     butt_filter.bind('<Leave>', lambda event=None: butt_filter.config(foreground=butt['foreground'], background=butt['background']))
+    # ↓ Entry mouseovers
+    in01.bind('<Enter>', lambda event=None: in01.config(foreground=butt['activeforeground'], background=butt['activebackground']))
+    in01.bind('<Leave>', lambda event=None: in01.config(foreground=butt['foreground'], background='white'))
     UINormal()
     sortir.geometry(f'+{(sortir.winfo_screenwidth() - sortir.winfo_width()) // 2}+{(sortir.winfo_screenheight() - sortir.winfo_height()) // 2 - 32}')
     zanyato.focus_set()
@@ -615,6 +618,8 @@ in01 = Spinbox(
     state='disabled',
     width=4,
     font=('helvetica', 11),
+    foreground=butt['foreground'],
+    background='white',
     validate='key',
     validatecommand=(validate_entry, '%S'),
 )
