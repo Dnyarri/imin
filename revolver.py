@@ -27,7 +27,7 @@ __author__ = 'Ilya Razmanov'
 __copyright__ = '(c) 2025-2026 Ilya Razmanov'
 __credits__ = 'Ilya Razmanov'
 __license__ = 'unlicense'
-__version__ = '26.2.8.8'
+__version__ = '26.2.8.18'
 __maintainer__ = 'Ilya Razmanov'
 __email__ = 'ilyarazmanov@gmail.com'
 __status__ = 'Development'
@@ -129,8 +129,8 @@ def GetSource(event=None) -> None:
 
     global zoom_factor, view_src, is_filtered, is_saved, info_normal, color_mode_str
     global preview, preview_src, preview_filtered  # preview and copies of preview
-    global X, Y, Z, maxcolors, result_image, info, sourcefilename
-    global source_image  # deep copy of source data, to be used as a source for filtering
+    global sourcefilename, X, Y, Z, maxcolors, source_image, info
+    global XNEW, YNEW, result_image
 
     old_sourcefilename = sourcefilename  # Temporary saving info in case of "Open.." cancel
     old_size = (X, Y, Z)
@@ -161,6 +161,8 @@ def GetSource(event=None) -> None:
 
     else:
         raise ValueError('Extension not recognized')
+
+    XNEW, YNEW = (X, Y)
 
     """ ┌────────────────────────────────────────────┐
         │ Creating deep copy of source 3D list       │
@@ -243,7 +245,8 @@ def RunFilter(event=None) -> None:
 
     global zoom_factor, view_src, is_filtered, is_saved, info_normal, color_mode_str, timing
     global preview, preview_filtered
-    global X, Y, Z, maxcolors, result_image, source_image, info
+    global X, Y, Z, maxcolors, source_image, info
+    global XNEW, YNEW, result_image
 
     """ ┌──────────────────┐
         │ Filtering image. │
@@ -308,8 +311,6 @@ def RunFilter(event=None) -> None:
     info_normal = {'txt': f'{Path(sourcefilename).name}{"*" if is_filtered else ""} X={XNEW if is_filtered else X} Y={YNEW if is_filtered else Y} Z={Z} maxcolors={maxcolors}', 'fg': 'grey', 'bg': 'grey90'}
     UINormal()
     zanyato.focus_set()  # moving focus to preview
-    X = XNEW
-    Y = YNEW
 
 
 def zoomIn(event=None) -> None:
@@ -390,13 +391,15 @@ def SwitchView(event=None) -> None:
 def onSave() -> None:
     """Reassign images and other objects from new to old upon saving."""
 
-    global sourcefilename, resultfilename, is_saved
-    global source_image, result_image, X, Y, Z, maxcolors
-    global preview_data, preview_filtered, preview_src, info_normal
+    global preview_filtered, preview_src, info_normal
+    global sourcefilename, X, Y, Z, maxcolors, source_image
+    global resultfilename, XNEW, YNEW, result_image
 
-    sourcefilename = resultfilename  # Now saved file becomes new source file
+    # ↓ saved file becomes new source file
+    sourcefilename = resultfilename
     source_image = result_image
     preview_src = preview_filtered
+    X, Y = (XNEW, YNEW)
 
     # ↓ disabling save
     menu02.entryconfig('Save', state='disabled')
@@ -416,7 +419,7 @@ def Save(event=None) -> None:
     """Once pressed on Save."""
 
     global is_filtered, is_saved, info_normal, color_mode_str
-    global source_image, sourcefilename, resultfilename
+    global sourcefilename, resultfilename
 
     if is_saved:  # block repetitive saving
         return
@@ -442,7 +445,7 @@ def SaveAs(event=None) -> None:
     """Once pressed on Save as..."""
 
     global is_saved, is_filtered, info_normal, color_mode_str
-    global source_image, sourcefilename, resultfilename
+    global sourcefilename, resultfilename
 
     # ↓ Adjusting "Save as" formats to be displayed
     #   according to bitdepth and source extension
