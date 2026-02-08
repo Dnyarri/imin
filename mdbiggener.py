@@ -27,7 +27,7 @@ __author__ = 'Ilya Razmanov'
 __copyright__ = '(c) 2025-2026 Ilya Razmanov'
 __credits__ = 'Ilya Razmanov'
 __license__ = 'unlicense'
-__version__ = '26.2.7.7'
+__version__ = '26.2.8.8'
 __maintainer__ = 'Ilya Razmanov'
 __email__ = 'ilyarazmanov@gmail.com'
 __status__ = 'Development'
@@ -155,14 +155,19 @@ def GetSource(event=None) -> None:
     global X, Y, Z, XNEW, YNEW, maxcolors, result_image, info, sourcefilename
     global source_image  # deep copy of source data, to be used as a source for filtering
 
+    old_sourcefilename = sourcefilename  # Temporary saving info in case of "Open.." cancel
+    old_size = (X, Y, Z)
+    sourcefilename = askopenfilename(title='Open image file', filetypes=[('Supported formats', '.png .ppm .pgm .pbm .pnm'), ('Portable network graphics', '.png'), ('Portable any map', '.ppm .pgm .pbm .pnm')])
+    if sourcefilename == '':
+        sourcefilename = old_sourcefilename
+        X, Y, Z = old_size
+        return
+
+    # ↓ Next must be set AFTER "sourcefilename", in case of "Open.." cancel
     zoom_factor = 0
     view_src = True
     is_filtered = False
     is_saved = True
-
-    sourcefilename = askopenfilename(title='Open image file', filetypes=[('Supported formats', '.png .ppm .pgm .pbm .pnm'), ('Portable network graphics', '.png'), ('Portable any map', '.ppm .pgm .pbm .pnm')])
-    if sourcefilename == '':
-        return
 
     UIBusy()
 
@@ -228,7 +233,7 @@ def GetSource(event=None) -> None:
     sortir.bind_all('<MouseWheel>', zoomWheel)  # Wheel scroll
     sortir.bind_all('<Control-i>', ShowInfo)
     menu02.entryconfig('Image Info...', state='normal')
-    # ↓ Spin
+    # ↓ Spinbox mouse input
     in01.unbind('<MouseWheel>')
     in01.bind('<MouseWheel>', incWheel)
     in02.unbind('<MouseWheel>')
@@ -319,6 +324,8 @@ def RunFilter(event=None) -> None:
     info_normal = {'txt': f'{Path(sourcefilename).name}{"*" if is_filtered else ""} X={XNEW if is_filtered else X} Y={YNEW if is_filtered else Y} Z={Z} maxcolors={maxcolors}', 'fg': 'grey', 'bg': 'grey90'}
     UINormal()
     zanyato.focus_set()  # moving focus to preview
+    X = XNEW
+    Y = YNEW
 
 
 def zoomIn(event=None) -> None:
@@ -404,9 +411,7 @@ def onSave() -> None:
     global preview_data, preview_filtered, preview_src, info_normal
 
     sourcefilename = resultfilename  # Now saved file becomes new source file
-    source_image = deepcopy(result_image)
-    preview_data = list2bin(result_image, maxcolors, show_chessboard=True)
-    preview_filtered = PhotoImage(data=preview_data)
+    source_image = result_image
     preview_src = preview_filtered
 
     # ↓ disabling save
@@ -539,7 +544,9 @@ def incWheel(event) -> None:
 """ ╔═══════════╗
     ║ Main body ║
     ╚═══════════╝ """
-
+# ↓ Initializing
+sourcefilename = ''
+X = Y = Z = 0
 zoom_factor = 0
 view_src = True
 is_filtered = False
@@ -573,17 +580,6 @@ color_mode_str = ' '
 # ↓ Info string
 info_string = Label(sortir, text=info_normal['txt'], font=('courier', 7), foreground=info_normal['fg'], background=info_normal['bg'], relief='groove')
 info_string.pack(side='bottom', padx=0, pady=(2, 0), fill='both')
-# ↓ Info string binding for displaying execution time
-info_string.bind('<Enter>', lambda event=None: info_string.config(text=f'Run time: {timing}'))
-info_string.bind('<Leave>', lambda event=None: UINormal())
-info_string.bind('<Control-Button-1>', lambda event=None: [sortir.clipboard_clear(), sortir.clipboard_append(f'{timing}\n')])
-
-# ↓ initial sortir binding, before image load
-sortir.bind_all('<Button-3>', ShowMenu)  # Popup menu
-sortir.bind_all('<Alt-f>', ShowMenu)
-sortir.bind_all('<Control-o>', GetSource)
-sortir.bind_all('<Control-q>', DisMiss)
-
 frame_top = Frame(sortir, borderwidth=2, relief='groove')
 frame_top.pack(side='top', anchor='w', pady=(0, 2))
 frame_preview = Frame(sortir, borderwidth=2, relief='groove')
@@ -624,9 +620,6 @@ menu02.add_separator()
 menu02.add_command(label='Exit', state='normal', command=DisMiss, accelerator='Ctrl+Q')
 
 butt_file['menu'] = menu02
-
-butt_file.bind('<Enter>', lambda event=None: butt_file.config(relief=butt['overrelief']))
-butt_file.bind('<Leave>', lambda event=None: butt_file.config(relief=butt['relief']))
 
 butt_file.focus_set()  # Setting focus to "File..."
 
@@ -723,8 +716,6 @@ zanyato = Label(
     background='grey90',
     relief='groove',
 )
-zanyato.bind('<Double-Button-1>', GetSource)  # Double-click to "Open"
-frame_preview.bind('<Double-Button-1>', GetSource)
 zanyato.pack(side='top')
 
 frame_zoom = Frame(frame_preview, borderwidth=2, relief='groove')
@@ -740,6 +731,25 @@ label_zoom = Label(frame_zoom, text='Zoom 1:1', font=('courier', 8), state='disa
 label_zoom.pack(side='left', anchor='n', padx=2, pady=0, fill='both')
 
 transparent_controls = (in01, in02)  # To be cut off global events
+
+""" ┌─────────────────────────────────────────────┐
+    │ Binding everything that does not need image │
+    └────────────────────────────────────────────-┘ """
+# ↓ Info string binding for displaying execution time
+info_string.bind('<Enter>', lambda event=None: info_string.config(text=f'Run time: {timing}'))
+info_string.bind('<Leave>', lambda event=None: info_string.config(text=info_normal['txt']))
+info_string.bind('<Control-Button-1>', lambda event=None: [sortir.clipboard_clear(), sortir.clipboard_append(f'{timing}\n')])
+# ↓ "File..." mouseover
+butt_file.bind('<Enter>', lambda event=None: butt_file.config(relief=butt['overrelief']))
+butt_file.bind('<Leave>', lambda event=None: butt_file.config(relief=butt['relief']))
+# ↓ Double-click image area to "Open..."
+zanyato.bind('<Double-Button-1>', GetSource)  # Double-click to "Open"
+frame_preview.bind('<Double-Button-1>', GetSource)
+# ↓ Whole sortir binding menu, "Open..." and "Exit"
+sortir.bind_all('<Button-3>', ShowMenu)  # Popup menu
+sortir.bind_all('<Alt-f>', ShowMenu)
+sortir.bind_all('<Control-o>', GetSource)
+sortir.bind_all('<Control-q>', DisMiss)
 
 # ↓ Center window horizontally, +100 vertically
 sortir.update()
