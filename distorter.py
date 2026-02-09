@@ -27,7 +27,7 @@ __author__ = 'Ilya Razmanov'
 __copyright__ = '(c) 2026 Ilya Razmanov'
 __credits__ = 'Ilya Razmanov'
 __license__ = 'unlicense'
-__version__ = '26.2.9.17'
+__version__ = '26.2.9.21'
 __maintainer__ = 'Ilya Razmanov'
 __email__ = 'ilyarazmanov@gmail.com'
 __status__ = 'Development'
@@ -617,9 +617,16 @@ def SaveAs(event=None) -> None:
 
 
 def valiDig(new_value):
-    """Tries to validate float input. Far from being perfect yet."""
+    """Try to validate float input. Far from being perfect yet."""
 
-    return True if new_value == '' or new_value == '-' or new_value.replace('.', '').replace(' ', '').isdigit() else False
+    try:
+        _ = float(new_value)
+        if _ < -1 or _ > 1:
+            return False
+    except ValueError:
+        return False
+    return True
+
 
 
 def incWheel(event) -> None:
@@ -758,7 +765,7 @@ in01 = Spinbox(
     width=5,
     font=('helvetica', 11),
     validate='key',
-    validatecommand=(validate_entry, '%S'),
+    validatecommand=(validate_entry, '%P'),
 )
 in01.grid(row=0, column=col)
 
@@ -798,7 +805,7 @@ in02 = Spinbox(
     width=5,
     font=('helvetica', 11),
     validate='key',
-    validatecommand=(validate_entry, '%S'),
+    validatecommand=(validate_entry, '%P'),
 )
 in02.grid(row=0, column=col)
 col += 1
