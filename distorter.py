@@ -27,7 +27,7 @@ __author__ = 'Ilya Razmanov'
 __copyright__ = '(c) 2026 Ilya Razmanov'
 __credits__ = 'Ilya Razmanov'
 __license__ = 'unlicense'
-__version__ = '26.2.8.18'
+__version__ = '26.2.9.17'
 __maintainer__ = 'Ilya Razmanov'
 __email__ = 'ilyarazmanov@gmail.com'
 __status__ = 'Development'
@@ -247,6 +247,18 @@ def GetSource(event=None) -> None:
 
 def GetMap() -> tuple[callable, callable, int, int]:
     """Generate displacement map and  calculate XNEW and YNEW for it."""
+
+    # ↓ Temporary block until I figure out proper validation
+    _ = ini_x.get()
+    if _ < -1.0:
+        ini_x.set(-1.0)
+    if _ > 1.0:
+        ini_x.set(1.0)
+    _ = ini_y.get()
+    if _ < -1.0:
+        ini_y.set(-1.0)
+    if _ > 1.0:
+        ini_y.set(1.0)
 
     if edge_str.get() == 'Repeat':
         edge = 'repeat'
