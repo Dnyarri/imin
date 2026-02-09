@@ -27,7 +27,7 @@ __author__ = 'Ilya Razmanov'
 __copyright__ = '(c) 2025-2026 Ilya Razmanov'
 __credits__ = 'Ilya Razmanov'
 __license__ = 'unlicense'
-__version__ = '26.2.8.18'
+__version__ = '26.2.9.15'
 __maintainer__ = 'Ilya Razmanov'
 __email__ = 'ilyarazmanov@gmail.com'
 __status__ = 'Development'
@@ -284,10 +284,18 @@ def RunFilter(event=None) -> None:
     def fy(x, y):
         return ((x - XNEW / 2) * SIN) + ((y - YNEW / 2) * COS) + Y / 2
 
-    # ↓ displacing
+    # ↓ Rotation using `displace` from `imin.displace`
     start = time()
     result_image = displace(source_image, fx, fy, XNEW, YNEW, edge=edge, method=method)
     timing = time() - start
+
+    """
+    # ↓ Alternative rotation using `pixel` from `imin`
+    from imin import pixel
+    start = time()
+    result_image = [[pixel(source_image, fx(x, y), fy(x, y), edge=edge, method=method) for x in range(XNEW)] for y in range(YNEW)]
+    timing = time() - start
+    """
 
     # ↓ preview result
     preview_data = list2bin(result_image, maxcolors, show_chessboard=True)
