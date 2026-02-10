@@ -27,7 +27,7 @@ __author__ = 'Ilya Razmanov'
 __copyright__ = '(c) 2026 Ilya Razmanov'
 __credits__ = 'Ilya Razmanov'
 __license__ = 'unlicense'
-__version__ = '26.2.9.21'
+__version__ = '26.2.10.4'
 __maintainer__ = 'Ilya Razmanov'
 __email__ = 'ilyarazmanov@gmail.com'
 __status__ = 'Development'
@@ -742,7 +742,7 @@ method_menu = OptionMenu(
     ],
 )
 method_menu.grid(row=1, column=col, columnspan=3)
-method_menu.configure(indicatoron=True, font=('helvetica', 12), width=9, anchor='e', relief='groove', activebackground='#E5F1FB', state='disabled')
+method_menu.configure(indicatoron=True, font=('helvetica', 12), width=9, anchor='e', relief=butt['relief'], activebackground=butt['activebackground'], state='disabled')
 method_menu['menu'].configure(font=method_menu['font'])
 
 col += 1
@@ -783,7 +783,7 @@ edge_menu = OptionMenu(
     ],
 )
 edge_menu.grid(row=1, column=col, columnspan=3)
-edge_menu.configure(indicatoron=True, font=('helvetica', 12), width=6, anchor='e', relief='groove', activebackground='#E5F1FB', state='disabled')
+edge_menu.configure(indicatoron=True, font=('helvetica', 12), width=6, anchor='e', relief=butt['relief'], activebackground=butt['activebackground'], state='disabled')
 edge_menu['menu'].configure(font=edge_menu['font'])
 
 col += 1
@@ -823,7 +823,7 @@ function_menu = OptionMenu(
     ],
 )
 function_menu.grid(row=0, column=col)
-function_menu.configure(indicatoron=True, font=('helvetica', 12), width=8, anchor='e', relief='groove', activebackground='#E5F1FB', state='disabled')
+function_menu.configure(indicatoron=True, font=('helvetica', 12), width=8, anchor='e', relief=butt['relief'], activebackground=butt['activebackground'], state='disabled')
 function_menu['menu'].configure(font=function_menu['font'])
 
 col += 1

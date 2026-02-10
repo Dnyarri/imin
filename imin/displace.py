@@ -47,7 +47,7 @@ __author__ = 'Ilya Razmanov'
 __copyright__ = '(c) 2024-2026 Ilya Razmanov'
 __credits__ = 'Ilya Razmanov'
 __license__ = 'unlicense'
-__version__ = '26.2.6.16'
+__version__ = '26.2.10.4'
 __maintainer__ = 'Ilya Razmanov'
 __email__ = 'ilyarazmanov@gmail.com'
 __status__ = 'Development'
@@ -63,9 +63,7 @@ def _src(source_image: list[list[list[int]]], x: int | float, y: int | float, ed
     returns list[channel] for pixel(x, y)."""
 
     # ↓ Determining source image sizes.
-    Y = len(source_image)
-    X = len(source_image[0])
-    Z = len(source_image[0][0])
+    Y, X, Z = (len(source_image), len(source_image[0]), len(source_image[0][0]))
 
     if edge == 1 or edge == 'repeat':
         # ↓ Repeat edge.

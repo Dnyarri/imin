@@ -27,7 +27,7 @@ __author__ = 'Ilya Razmanov'
 __copyright__ = '(c) 2025-2026 Ilya Razmanov'
 __credits__ = 'Ilya Razmanov'
 __license__ = 'unlicense'
-__version__ = '26.2.8.18'
+__version__ = '26.2.10.4'
 __maintainer__ = 'Ilya Razmanov'
 __email__ = 'ilyarazmanov@gmail.com'
 __status__ = 'Development'
@@ -674,10 +674,14 @@ ini_x.trace_add('write', lambda *args: syncXY())
 ini_y.trace_add('write', lambda *args: syncYX())
 
 method_str = StringVar(value='Bilinear')
-method_menu = OptionMenu(frame_top, method_str, *['Bilinear', 'Barycentric'])
+method_menu = OptionMenu(
+    frame_top,
+    method_str,
+    *['Bilinear', 'Barycentric'],
+)
 method_menu.grid(row=0, column=col)
 col += 1
-method_menu.configure(indicatoron=True, font=('helvetica', 12), width=10, anchor='e', relief='groove', activebackground='#E5F1FB', state='disabled')
+method_menu.configure(indicatoron=True, font=('helvetica', 12), width=10, anchor='e', relief=butt['relief'], activebackground=butt['activebackground'], state='disabled')
 method_menu['menu'].configure(font=method_menu['font'])
 
 # ↓ Filter start
