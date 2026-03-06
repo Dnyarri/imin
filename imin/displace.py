@@ -47,7 +47,7 @@ __author__ = 'Ilya Razmanov'
 __copyright__ = '(c) 2024-2026 Ilya Razmanov'
 __credits__ = 'Ilya Razmanov'
 __license__ = 'unlicense'
-__version__ = '26.2.10.4'
+__version__ = '26.3.6.16'
 __maintainer__ = 'Ilya Razmanov'
 __email__ = 'ilyarazmanov@gmail.com'
 __status__ = 'Development'
@@ -128,7 +128,7 @@ def bilinear(source_image: list[list[list[int]]], fx: callable, fy: callable, XN
     def _blin(x: float, y: float, edge: int | str) -> list[int]:
         """Local version of blin(x, y) based on _pixel(x, y). Returns interpolated pixel(x, y)."""
 
-        def _intaddup(a, b, c, d):
+        def _intaddup_4(a, b, c, d):
             return int(a + b + c + d)
 
         if x >= 0:
@@ -153,7 +153,7 @@ def bilinear(source_image: list[list[list[int]]], fx: callable, fy: callable, XN
         norm01 = [*map(mul, _pixel(x0, y1, edge), wt01)]
         norm10 = [*map(mul, _pixel(x1, y0, edge), wt10)]
         norm11 = [*map(mul, _pixel(x1, y1, edge), wt11)]
-        pixelvalue = [*map(_intaddup, norm00, norm01, norm10, norm11)]
+        pixelvalue = [*map(_intaddup_4, norm00, norm01, norm10, norm11)]
         return pixelvalue
 
     # ↓ Singe pass displacement
@@ -207,7 +207,7 @@ def barycentric(source_image: list[list[list[int]]], fx: callable, fy: callable,
     def _baryc(x: float, y: float, edge: int | str) -> list[int]:
         """Local version of baryc(x, y) based on _pixel(x, y). Returns interpolated pixel(x, y)."""
 
-        def _intaddup(a, b, c):
+        def _intaddup_3(a, b, c):
             return int(a + b + c)
 
         if x >= 0:
@@ -231,7 +231,10 @@ def barycentric(source_image: list[list[list[int]]], fx: callable, fy: callable,
         pix3 = _pixel(x3, y3, edge)
         pix4 = _pixel(x4, y4, edge)
 
-        if abs(sum(pix1[:Z_COLOR]) - sum(pix3[:Z_COLOR])) < abs(sum(pix2[:Z_COLOR]) - sum(pix4[:Z_COLOR])):
+        diff13 = abs(sum(pix1[:Z_COLOR]) - sum(pix3[:Z_COLOR]))
+        diff24 = abs(sum(pix2[:Z_COLOR]) - sum(pix4[:Z_COLOR]))
+
+        if diff13 < diff24:  # ╲ diagonal
             if (x - x1) < (y - y1):
                 a = x - x1
                 b = y4 - y
@@ -242,7 +245,7 @@ def barycentric(source_image: list[list[list[int]]], fx: callable, fy: callable,
                 norm3 = [*map(mul, pix3, at)]
                 norm1 = [*map(mul, pix1, bt)]
                 norm4 = [*map(mul, pix4, ct)]
-                pixelvalue = [*map(_intaddup, norm1, norm3, norm4)]
+                pixelvalue = [*map(_intaddup_3, norm1, norm3, norm4)]
                 return pixelvalue
 
             a = x2 - x
@@ -254,32 +257,52 @@ def barycentric(source_image: list[list[list[int]]], fx: callable, fy: callable,
             norm1 = [*map(mul, pix1, at)]
             norm3 = [*map(mul, pix3, bt)]
             norm2 = [*map(mul, pix2, ct)]
-            pixelvalue = [*map(_intaddup, norm1, norm3, norm2)]
+            pixelvalue = [*map(_intaddup_3, norm1, norm3, norm2)]
             return pixelvalue
 
-        if (x - x1) < (y3 - y):
-            a = x - x1
-            b = y - y1
+        if diff13 > diff24:  # ╱ diagonal
+            if (x - x1) < (y3 - y):
+                a = x - x1
+                b = y - y1
+                c = 1 - (a + b)
+                at = (a,) * Z
+                bt = (b,) * Z
+                ct = (c,) * Z
+                norm2 = [*map(mul, pix2, at)]
+                norm4 = [*map(mul, pix4, bt)]
+                norm1 = [*map(mul, pix1, ct)]
+                pixelvalue = [*map(_intaddup_3, norm1, norm2, norm4)]
+                return pixelvalue
+
+            a = x3 - x
+            b = y4 - y
             c = 1 - (a + b)
             at = (a,) * Z
             bt = (b,) * Z
             ct = (c,) * Z
-            norm2 = [*map(mul, pix2, at)]
-            norm4 = [*map(mul, pix4, bt)]
-            norm1 = [*map(mul, pix1, ct)]
-            pixelvalue = [*map(_intaddup, norm1, norm2, norm4)]
+            norm4 = [*map(mul, pix4, at)]
+            norm2 = [*map(mul, pix2, bt)]
+            norm3 = [*map(mul, pix3, ct)]
+            pixelvalue = [*map(_intaddup_3, norm2, norm3, norm4)]
             return pixelvalue
 
-        a = x3 - x
-        b = y4 - y
-        c = 1 - (a + b)
-        at = (a,) * Z
-        bt = (b,) * Z
-        ct = (c,) * Z
-        norm4 = [*map(mul, pix4, at)]
-        norm2 = [*map(mul, pix2, bt)]
-        norm3 = [*map(mul, pix3, ct)]
-        pixelvalue = [*map(_intaddup, norm2, norm3, norm4)]
+        # ↓ No diagonal
+        def _intaddup_4(a, b, c, d):
+            return int(a + b + c + d)
+
+        w1 = (x3 - x) * (y3 - y)
+        w2 = (x - x4) * (y4 - y)
+        w3 = (x - x1) * (y - y1)
+        w4 = (x2 - x) * (y - y2)
+        wt1 = (w1,) * Z
+        wt2 = (w2,) * Z
+        wt3 = (w3,) * Z
+        wt4 = (w4,) * Z
+        norm1 = [*map(mul, pix1, wt1)]
+        norm2 = [*map(mul, pix2, wt2)]
+        norm3 = [*map(mul, pix3, wt3)]
+        norm4 = [*map(mul, pix4, wt4)]
+        pixelvalue = [*map(_intaddup_4, norm1, norm4, norm2, norm3)]
         return pixelvalue
 
     # ↓ Singe pass displacement

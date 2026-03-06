@@ -46,7 +46,7 @@ __author__ = 'Ilya Razmanov'
 __copyright__ = '(c) 2023-2026 Ilya Razmanov'
 __credits__ = 'Ilya Razmanov'
 __license__ = 'unlicense'
-__version__ = '26.2.10.4'
+__version__ = '26.3.6.16'
 __maintainer__ = 'Ilya Razmanov'
 __email__ = 'ilyarazmanov@gmail.com'
 __status__ = 'Development'
@@ -120,7 +120,7 @@ def blin(source_image: list[list[list[int]]], x: float, y: float, edge: int | st
 
     """
 
-    def _intaddup(a, b, c, d):
+    def _intaddup_4(a, b, c, d):
         return int(a + b + c + d)
 
     # ↓ Determining source image sizes.
@@ -182,7 +182,7 @@ def blin(source_image: list[list[list[int]]], x: float, y: float, edge: int | st
     norm11 = [*map(mul, pix11, wt11)]
 
     # ↓ Adding up scaled corner pixels "norm" channel by channel
-    pixelvalue = [*map(_intaddup, norm00, norm01, norm10, norm11)]
+    pixelvalue = [*map(_intaddup_4, norm00, norm01, norm10, norm11)]
 
     """
     # ↓ List comprehension alternative to map.
@@ -193,7 +193,7 @@ def blin(source_image: list[list[list[int]]], x: float, y: float, edge: int | st
     norm01 = [w01 * src(source_image, x0, y1, edge)[z] for z in range(Z)]
     norm10 = [w10 * src(source_image, x1, y0, edge)[z] for z in range(Z)]
     norm11 = [w11 * src(source_image, x1, y1, edge)[z] for z in range(Z)]
-    pixelvalue = [_intaddup(norm00[z], norm01[z], norm10[z], norm11[z]) for z in range(Z)]
+    pixelvalue = [_intaddup_4(norm00[z], norm01[z], norm10[z], norm11[z]) for z in range(Z)]
     """
 
     return pixelvalue
@@ -220,7 +220,7 @@ def baryc(source_image: list[list[list[int]]], x: float, y: float, edge: int | s
 
     """
 
-    def _intaddup(a, b, c):
+    def _intaddup_3(a, b, c):
         return int(a + b + c)
 
     # ↓ Determining source image sizes.
@@ -258,7 +258,7 @@ def baryc(source_image: list[list[list[int]]], x: float, y: float, edge: int | s
         y1 = int(y) - 1
 
     # ↓ Starting corner pixels reading
-    pix1 = src(source_image, x1, y1, edge)
+    pix1 = pixel(source_image, x1, y1, edge)
 
     # ↓ In case of direct hit no interpolation required
     if x == x1 and y == y1:
@@ -271,16 +271,19 @@ def baryc(source_image: list[list[list[int]]], x: float, y: float, edge: int | s
     y3 = y1 + 1
     x4 = x1
     y4 = y3
-    pix2 = src(source_image, x2, y2, edge)
-    pix3 = src(source_image, x3, y3, edge)
-    pix4 = src(source_image, x4, y4, edge)
+    pix2 = pixel(source_image, x2, y2, edge)
+    pix3 = pixel(source_image, x3, y3, edge)
+    pix4 = pixel(source_image, x4, y4, edge)
 
     """ Now going to choose the diagonal for 2×2 pixel square folding based on
         comparing differences between pixels in 🡦 and 🡧 directions.
         Currently total sum of channels (excluding alpha) is used for comparison.
         The choice is questionable, but pro et contra may be given for any. """
 
-    if abs(sum(pix1[:Z_COLOR]) - sum(pix3[:Z_COLOR])) < abs(sum(pix2[:Z_COLOR]) - sum(pix4[:Z_COLOR])):
+    diff13 = abs(sum(pix1[:Z_COLOR]) - sum(pix3[:Z_COLOR]))
+    diff24 = abs(sum(pix2[:Z_COLOR]) - sum(pix4[:Z_COLOR]))
+
+    if diff13 < diff24:
         # ↓ ╲ diagonal
         if (x - x1) < (y - y1):
             # ↓ ◣ 1-3-4 triangle
@@ -297,7 +300,7 @@ def baryc(source_image: list[list[list[int]]], x: float, y: float, edge: int | s
             norm1 = [*map(mul, pix1, bt)]
             norm4 = [*map(mul, pix4, ct)]
 
-            pixelvalue = [*map(_intaddup, norm1, norm3, norm4)]
+            pixelvalue = [*map(_intaddup_3, norm1, norm3, norm4)]
 
             return pixelvalue
 
@@ -313,41 +316,72 @@ def baryc(source_image: list[list[list[int]]], x: float, y: float, edge: int | s
         norm3 = [*map(mul, pix3, bt)]
         norm2 = [*map(mul, pix2, ct)]
 
-        pixelvalue = [*map(_intaddup, norm1, norm3, norm2)]
+        pixelvalue = [*map(_intaddup_3, norm1, norm3, norm2)]
 
         return pixelvalue
 
-    # ↓ ╱ diagonal
-    if (x - x1) < (y3 - y):
-        # ↓ ◤ 1-2-4 triangle
-        a = x - x1
-        b = y - y1
+    if diff13 > diff24:
+        # ↓ ╱ diagonal
+        if (x - x1) < (y3 - y):
+            # ↓ ◤ 1-2-4 triangle
+            a = x - x1
+            b = y - y1
+            c = 1 - (a + b)
+            at = (a,) * Z
+            bt = (b,) * Z
+            ct = (c,) * Z
+
+            norm2 = [*map(mul, pix2, at)]
+            norm4 = [*map(mul, pix4, bt)]
+            norm1 = [*map(mul, pix1, ct)]
+
+            pixelvalue = [*map(_intaddup_3, norm1, norm2, norm4)]
+
+            return pixelvalue
+
+        # ↓ ◢ 2-3-4 triangle
+        a = x3 - x
+        b = y4 - y
         c = 1 - (a + b)
         at = (a,) * Z
         bt = (b,) * Z
         ct = (c,) * Z
 
-        norm2 = [*map(mul, pix2, at)]
-        norm4 = [*map(mul, pix4, bt)]
-        norm1 = [*map(mul, pix1, ct)]
+        norm4 = [*map(mul, pix4, at)]
+        norm2 = [*map(mul, pix2, bt)]
+        norm3 = [*map(mul, pix3, ct)]
 
-        pixelvalue = [*map(_intaddup, norm1, norm2, norm4)]
+        pixelvalue = [*map(_intaddup_3, norm2, norm3, norm4)]
 
         return pixelvalue
 
-    # ↓ ◢ 2-3-4 triangle
-    a = x3 - x
-    b = y4 - y
-    c = 1 - (a + b)
-    at = (a,) * Z
-    bt = (b,) * Z
-    ct = (c,) * Z
+    """ If none of diagonal criteria above satisfied, source window
+        considered symmetrical, and bilinear interpolation
+        ensue to avoid introducing asymmetrical artifacts. """
 
-    norm4 = [*map(mul, pix4, at)]
-    norm2 = [*map(mul, pix2, bt)]
-    norm3 = [*map(mul, pix3, ct)]
+    def _intaddup_4(a, b, c, d):
+        return int(a + b + c + d)
 
-    pixelvalue = [*map(_intaddup, norm2, norm3, norm4)]
+    # ↓ Distance weights "w" for corner pixels
+    w1 = (x3 - x) * (y3 - y)
+    w2 = (x - x4) * (y4 - y)
+    w3 = (x - x1) * (y - y1)
+    w4 = (x2 - x) * (y - y2)
+
+    # ↓ Packing weights "w" as tuples "wt" for map() below
+    wt1 = (w1,) * Z
+    wt2 = (w2,) * Z
+    wt3 = (w3,) * Z
+    wt4 = (w4,) * Z
+
+    # ↓ Scaling corner pixels values "pix" according to weights above
+    norm1 = [*map(mul, pix1, wt1)]
+    norm2 = [*map(mul, pix2, wt2)]
+    norm3 = [*map(mul, pix3, wt3)]
+    norm4 = [*map(mul, pix4, wt4)]
+
+    # ↓ Adding up scaled corner pixels "norm" channel by channel
+    pixelvalue = [*map(_intaddup_4, norm1, norm4, norm2, norm3)]
 
     return pixelvalue
 
