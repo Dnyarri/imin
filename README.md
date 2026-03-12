@@ -52,9 +52,10 @@ Instructions for developers on module usage and function input syntax are given 
 
 Shell programs GUI provides whole set of interpolation options; however, they do not always work as one may expect. For example, "Wrap around" processing for seamless textures in "Distorter" works for wave deformation, but makes seams for skewing. This is caused by skewing nature: opposite image borders slide against each other, thus breaking seamless borders match. Please remember that these shell programs are made for module testing and illustration purposes, and not as a complete replacement for Photoshop or GIMP.
 
-| Displacer GUI |
+| Fig. 1. *Image displacement in "wrap around" mode, using barycentric image interpolation* |
 | :---: |
-| [![Displacer GUI](https://dnyarri.github.io/imin/anigui.png "Displacer in action, barycentric image interpolation in wrap around mode")](https://dnyarri.github.io/imin.html) |
+| [![Distorter GUI](https://dnyarri.github.io/imin/anigui.png "Displacer in action, barycentric image interpolation in wrap around mode")](https://dnyarri.github.io/imin.html) |
+| *Sample program "Dist⧣rter", performing arbitrary image displacement in "wrap around" mode, using barycentric image interpolation.* |
 
 ## Prerequisite and Dependencies
 
