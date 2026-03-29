@@ -46,7 +46,7 @@ __author__ = 'Ilya Razmanov'
 __copyright__ = '(c) 2023-2026 Ilya Razmanov'
 __credits__ = 'Ilya Razmanov'
 __license__ = 'unlicense'
-__version__ = '26.3.6.16'
+__version__ = '26.3.29.16'
 __maintainer__ = 'Ilya Razmanov'
 __email__ = 'ilyarazmanov@gmail.com'
 __status__ = 'Development'
@@ -186,8 +186,9 @@ def blin(source_image: list[list[list[int]]], x: float, y: float, edge: int | st
 
     """
     # ↓ List comprehension alternative to map.
-    #   In single pass x5 upscaling execution time was doubled vs. [*map()],
-    #   so this alternative is described here for illustration purposes only.
+    #   In single pass x5 upscaling execution time appeared to be doubled
+    #   vs. [*map()], so this alternative is described here
+    #   for illustration purposes only.
 
     norm00 = [w00 * src(source_image, x0, y0, edge)[z] for z in range(Z)]
     norm01 = [w01 * src(source_image, x0, y1, edge)[z] for z in range(Z)]
@@ -304,21 +305,22 @@ def baryc(source_image: list[list[list[int]]], x: float, y: float, edge: int | s
 
             return pixelvalue
 
-        # ↓ ◥ 1-2-3 triangle
-        a = x2 - x
-        b = y - y1
-        c = 1 - (a + b)
-        at = (a,) * Z
-        bt = (b,) * Z
-        ct = (c,) * Z
+        if (x - x1) > (y - y1):
+            # ↓ ◥ 1-2-3 triangle
+            a = x2 - x
+            b = y - y1
+            c = 1 - (a + b)
+            at = (a,) * Z
+            bt = (b,) * Z
+            ct = (c,) * Z
 
-        norm1 = [*map(mul, pix1, at)]
-        norm3 = [*map(mul, pix3, bt)]
-        norm2 = [*map(mul, pix2, ct)]
+            norm1 = [*map(mul, pix1, at)]
+            norm3 = [*map(mul, pix3, bt)]
+            norm2 = [*map(mul, pix2, ct)]
 
-        pixelvalue = [*map(_intaddup_3, norm1, norm3, norm2)]
+            pixelvalue = [*map(_intaddup_3, norm1, norm3, norm2)]
 
-        return pixelvalue
+            return pixelvalue
 
     if diff13 > diff24:
         # ↓ ╱ diagonal
@@ -339,25 +341,28 @@ def baryc(source_image: list[list[list[int]]], x: float, y: float, edge: int | s
 
             return pixelvalue
 
-        # ↓ ◢ 2-3-4 triangle
-        a = x3 - x
-        b = y4 - y
-        c = 1 - (a + b)
-        at = (a,) * Z
-        bt = (b,) * Z
-        ct = (c,) * Z
+        if (x - x1) > (y3 - y):
+            # ↓ ◢ 2-3-4 triangle
+            a = x3 - x
+            b = y4 - y
+            c = 1 - (a + b)
+            at = (a,) * Z
+            bt = (b,) * Z
+            ct = (c,) * Z
 
-        norm4 = [*map(mul, pix4, at)]
-        norm2 = [*map(mul, pix2, bt)]
-        norm3 = [*map(mul, pix3, ct)]
+            norm4 = [*map(mul, pix4, at)]
+            norm2 = [*map(mul, pix2, bt)]
+            norm3 = [*map(mul, pix3, ct)]
 
-        pixelvalue = [*map(_intaddup_3, norm2, norm3, norm4)]
+            pixelvalue = [*map(_intaddup_3, norm2, norm3, norm4)]
 
-        return pixelvalue
+            return pixelvalue
 
-    """ If none of diagonal criteria above satisfied, source window
-        considered symmetrical, and bilinear interpolation
-        ensue to avoid introducing asymmetrical artifacts. """
+    """ Take notice that code above does not include "diagonal contrast equal"
+        or "coordinate on diagonal, precisely" variants.
+        If none of the criteria above satisfied, situation is considered
+        "symmetrical", and bilinear interpolation ensue to avoid
+        introducing asymmetrical artifacts. """
 
     def _intaddup_4(a, b, c, d):
         return int(a + b + c + d)

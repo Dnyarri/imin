@@ -27,7 +27,7 @@ __author__ = 'Ilya Razmanov'
 __copyright__ = '(c) 2025-2026 Ilya Razmanov'
 __credits__ = 'Ilya Razmanov'
 __license__ = 'unlicense'
-__version__ = '26.3.12.17'
+__version__ = '26.3.29.16'
 __maintainer__ = 'Ilya Razmanov'
 __email__ = 'ilyarazmanov@gmail.com'
 __status__ = 'Development'
@@ -267,6 +267,9 @@ def GetSource(event=None) -> None:
     in02.bind('<Enter>', lambda event=None: in02.config(foreground=butt['activeforeground'], background=butt['activebackground']))
     in02.bind('<Leave>', lambda event=None: in02.config(foreground=butt['foreground'], background='white'))
     UINormal()
+    h_spacer = max(frame_top.winfo_reqwidth(), info_string.winfo_reqwidth())
+    v_spacer = sortir.winfo_reqheight()
+    sortir.minsize(h_spacer, v_spacer)
     sortir.geometry(f'+{(sortir.winfo_screenwidth() - sortir.winfo_width()) // 2}+{(sortir.winfo_screenheight() - sortir.winfo_height()) // 2 - 32}')
     zanyato.focus_set()
 
@@ -754,7 +757,9 @@ sortir.bind_all('<Control-q>', DisMiss)
 # ↓ Center window horizontally, +100 vertically
 sortir.update()
 # print(sortir.winfo_width(), sortir.winfo_height())
-sortir.minsize(frame_top.winfo_width(), 320)
+h_spacer = max(frame_top.winfo_reqwidth(), info_string.winfo_reqwidth())
+v_spacer = sortir.winfo_reqheight()
+sortir.minsize(h_spacer, v_spacer)
 sortir.maxsize(9 * sortir.winfo_screenwidth() // 10, 9 * sortir.winfo_screenheight() // 10)
 sortir.geometry(f'+{(sortir.winfo_screenwidth() - sortir.winfo_width()) // 2}+100')
 
