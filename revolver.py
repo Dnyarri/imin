@@ -27,7 +27,7 @@ __author__ = 'Ilya Razmanov'
 __copyright__ = '(c) 2025-2026 Ilya Razmanov'
 __credits__ = 'Ilya Razmanov'
 __license__ = 'unlicense'
-__version__ = '26.3.29.16'
+__version__ = '26.4.6.20'
 __maintainer__ = 'Ilya Razmanov'
 __email__ = 'ilyarazmanov@gmail.com'
 __status__ = 'Development'
@@ -103,6 +103,15 @@ def UIBusy() -> None:
     sortir.update()
 
 
+def UIFit() -> None:
+    """Readopting minsize."""
+
+    sortir.update()
+    fit_width = min(sortir.winfo_reqwidth(), 9 * sortir.winfo_screenwidth() // 10)
+    fit_height = min(sortir.winfo_reqheight(), 9 * sortir.winfo_screenheight() // 10)
+    sortir.minsize(fit_width, fit_height)
+
+
 def ShowPreview(preview_name: PhotoImage, caption: str) -> None:
     """Show preview_name PhotoImage with caption below."""
 
@@ -121,7 +130,6 @@ def ShowPreview(preview_name: PhotoImage, caption: str) -> None:
         label_zoom['text'] = 'Zoom 1:1'
 
     zanyato.config(text=caption, font=('helvetica', 8), image=preview, compound='top', padx=0, pady=0, justify='center', background=zanyato.master['background'], relief='flat', borderwidth=1, state='normal')
-    zanyato.pack_configure(pady=max(0, 16 - (preview.height() // 2)))
 
 
 def GetSource(event=None) -> None:
@@ -236,9 +244,7 @@ def GetSource(event=None) -> None:
     in01.bind('<Enter>', lambda event=None: in01.config(foreground=butt['activeforeground'], background=butt['activebackground']))
     in01.bind('<Leave>', lambda event=None: in01.config(foreground=butt['foreground'], background='white'))
     UINormal()
-    h_spacer = max(frame_top.winfo_reqwidth(), info_string.winfo_reqwidth())
-    v_spacer = sortir.winfo_reqheight()
-    sortir.minsize(h_spacer, v_spacer)
+    UIFit()
     sortir.geometry(f'+{(sortir.winfo_screenwidth() - sortir.winfo_width()) // 2}+{(sortir.winfo_screenheight() - sortir.winfo_height()) // 2 - 32}')
     zanyato.focus_set()
 
@@ -315,7 +321,8 @@ def RunFilter(event=None) -> None:
     # ↓ binding global
     sortir.bind_all('<Control-s>', Save)
     # ↓ binding switch on preview click
-    zanyato.bind('<Button-1>', SwitchView)  # left click
+    zanyato.bind('<Button-1>', SwitchView)
+    zanyato.bind('<ButtonRelease-1>', SwitchView)
     zanyato.bind('<space>', SwitchView)  # # "Space" key. May be worth binding whole sortir?
     # ↓ Adding filename, mode and status to window title a-la Photoshop
     sortir.title(f'{product_name}: {Path(sourcefilename).name}{color_mode_str}{"*" if is_filtered else ""}')
@@ -341,6 +348,8 @@ def zoomIn(event=None) -> None:
         butt_plus.config(state='disabled', cursor='arrow')
     else:
         butt_plus.config(state='normal', cursor='hand2')
+    UIFit()
+    sortir.update()
 
 
 def zoomOut(event=None) -> None:
@@ -360,6 +369,8 @@ def zoomOut(event=None) -> None:
         butt_minus.config(state='disabled', cursor='arrow')
     else:
         butt_minus.config(state='normal', cursor='hand2')
+    UIFit()
+    sortir.update()
 
 
 def zoomOne(event=None) -> None:
@@ -376,6 +387,8 @@ def zoomOne(event=None) -> None:
     # ↓ reenabling +/- buttons
     butt_plus.config(state='normal', cursor='hand2')
     butt_minus.config(state='normal', cursor='hand2')
+    UIFit()
+    sortir.update()
 
 
 def zoomWheel(event) -> None:
@@ -728,15 +741,18 @@ frame_preview.bind('<Double-Button-1>', GetSource)
 # ↓ Whole sortir binding menu, "Open..." and "Exit"
 sortir.bind_all('<Button-3>', ShowMenu)  # Popup menu
 sortir.bind_all('<Alt-f>', ShowMenu)
+sortir.bind_all('<Alt-F>', ShowMenu)
 sortir.bind_all('<Control-o>', GetSource)
+sortir.bind_all('<Control-O>', GetSource)
 sortir.bind_all('<Control-q>', DisMiss)
+sortir.bind_all('<Control-Q>', DisMiss)
+sortir.bind_all('<Control-w>', DisMiss)
+sortir.bind_all('<Control-W>', DisMiss)
 
 # ↓ Center window horizontally, +100 vertically
 sortir.update()
 # print(sortir.winfo_width(), sortir.winfo_height())
-h_spacer = max(frame_top.winfo_reqwidth(), info_string.winfo_reqwidth())
-v_spacer = sortir.winfo_reqheight()
-sortir.minsize(h_spacer, v_spacer)
+UIFit()
 sortir.maxsize(9 * sortir.winfo_screenwidth() // 10, 9 * sortir.winfo_screenheight() // 10)
 sortir.geometry(f'+{(sortir.winfo_screenwidth() - sortir.winfo_width()) // 2}+100')
 
