@@ -121,17 +121,17 @@ def ShowPreview(preview_choice: PhotoImage, caption: str) -> None:
 
     if zoom_factor > 0:
         preview = preview.zoom(zoom_factor + 1)
-        scaled_width = X * (zoom_factor + 1)
-        scaled_height = Y * (zoom_factor + 1)
+        scaled_width = XSHOW * (zoom_factor + 1)
+        scaled_height = YSHOW * (zoom_factor + 1)
         label_zoom['text'] = f'{caption} {zoom_factor + 1}:1'
     elif zoom_factor < 0:
         preview = preview.subsample(1 - zoom_factor)
-        scaled_width = X // (1 - zoom_factor)
-        scaled_height = Y // (1 - zoom_factor)
+        scaled_width = XSHOW // (1 - zoom_factor)
+        scaled_height = YSHOW // (1 - zoom_factor)
         label_zoom['text'] = f'{caption} 1:{1 - zoom_factor}'
     else:
-        scaled_width = X
-        scaled_height = Y
+        scaled_width = XSHOW
+        scaled_height = YSHOW
         label_zoom['text'] = f'{caption} 1:1'
     zanyato.config(
         image=preview,
@@ -159,6 +159,7 @@ def GetSource(event=None) -> None:
     global preview, preview_src, preview_filtered  # preview and copies of preview
     global sourcefilename, X, Y, Z, maxcolors, source_image, info
     global XNEW, YNEW, result_image
+    global XSHOW, YSHOW
 
     old_sourcefilename = sourcefilename  # Temporary saving info in case of "Open.." cancel
     old_size = (X, Y, Z)
@@ -191,6 +192,7 @@ def GetSource(event=None) -> None:
         raise ValueError('Extension not recognized')
 
     XNEW, YNEW = (X, Y)
+    XSHOW, YSHOW = (X, Y)
 
     """ ┌────────────────────────────────────────────┐
         │ Creating deep copy of source 3D list       │
@@ -276,6 +278,7 @@ def RunFilter(event=None) -> None:
     global preview, preview_filtered
     global X, Y, Z, maxcolors, source_image, info
     global XNEW, YNEW, result_image
+    global XSHOW, YSHOW
 
     """ ┌──────────────────┐
         │ Filtering image. │
@@ -306,6 +309,8 @@ def RunFilter(event=None) -> None:
 
     XNEW = int(abs(X * COS) + abs(Y * SIN))
     YNEW = int(abs(X * SIN) + abs(Y * COS))
+
+    XSHOW, YSHOW = (XNEW, YNEW)
 
     def fx(x, y):
         return ((x - XNEW / 2) * COS) - ((y - YNEW / 2) * SIN) + X / 2

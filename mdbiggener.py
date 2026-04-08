@@ -118,17 +118,17 @@ def ShowPreview(preview_choice: PhotoImage, caption: str) -> None:
 
     if zoom_factor > 0:
         preview = preview.zoom(zoom_factor + 1)
-        scaled_width = X * (zoom_factor + 1)
-        scaled_height = Y * (zoom_factor + 1)
+        scaled_width = XSHOW * (zoom_factor + 1)
+        scaled_height = YSHOW * (zoom_factor + 1)
         label_zoom['text'] = f'{caption} {zoom_factor + 1}:1'
     elif zoom_factor < 0:
         preview = preview.subsample(1 - zoom_factor)
-        scaled_width = X // (1 - zoom_factor)
-        scaled_height = Y // (1 - zoom_factor)
+        scaled_width = XSHOW // (1 - zoom_factor)
+        scaled_height = YSHOW // (1 - zoom_factor)
         label_zoom['text'] = f'{caption} 1:{1 - zoom_factor}'
     else:
-        scaled_width = X
-        scaled_height = Y
+        scaled_width = XSHOW
+        scaled_height = YSHOW
         label_zoom['text'] = f'{caption} 1:1'
     zanyato.config(
         image=preview,
@@ -182,6 +182,7 @@ def GetSource(event=None) -> None:
     global preview, preview_src, preview_filtered  # preview and copies of preview
     global sourcefilename, X, Y, Z, maxcolors, source_image, info
     global XNEW, YNEW, result_image
+    global XSHOW, YSHOW
 
     old_sourcefilename = sourcefilename  # Temporary saving info in case of "Open.." cancel
     old_size = (X, Y, Z)
@@ -219,6 +220,8 @@ def GetSource(event=None) -> None:
     XNEW, YNEW = (X, Y)
     ini_x.set(XNEW)
     ini_y.set(YNEW)
+
+    XSHOW, YSHOW = (XNEW, YNEW)
 
     """ ┌────────────────────────────────────────────┐
         │ Creating deep copy of source 3D list       │
@@ -307,6 +310,7 @@ def RunFilter(event=None) -> None:
     global preview, preview_filtered
     global X, Y, Z, maxcolors, source_image, info
     global XNEW, YNEW, result_image
+    global XSHOW, YSHOW
 
     # ↓ filtering parameters
     XNEW = ini_x.get()
@@ -317,6 +321,8 @@ def RunFilter(event=None) -> None:
         method = 'bilinear'
     elif method_str.get() == 'Barycentric':
         method = 'barycentric'
+
+    XSHOW, YSHOW = (XNEW, YNEW)
 
     UIBusy()
 
