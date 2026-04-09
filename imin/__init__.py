@@ -46,7 +46,7 @@ __author__ = 'Ilya Razmanov'
 __copyright__ = '(c) 2023-2026 Ilya Razmanov'
 __credits__ = 'Ilya Razmanov'
 __license__ = 'unlicense'
-__version__ = '26.3.29.16'
+__version__ = '26.4.9.8'
 __maintainer__ = 'Ilya Razmanov'
 __email__ = 'ilyarazmanov@gmail.com'
 __status__ = 'Development'
@@ -84,19 +84,20 @@ def src(source_image: list[list[list[int]]], x: int | float, y: int | float, edg
         cx = min(X - 1, max(0, int(x)))
         cy = min(Y - 1, max(0, int(y)))
         pixelvalue = source_image[cy][cx]
-    elif edge == 2 or edge == 'wrap':
+        return pixelvalue
+    if edge == 2 or edge == 'wrap':
         # ↓ Wrap around.
         cx = int(x) % X
         cy = int(y) % Y
         pixelvalue = source_image[cy][cx]
+        return pixelvalue
     else:
         # ↓ Zeroes.
         if x < 0 or y < 0 or x > X - 1 or y > Y - 1:
             pixelvalue = [0] * Z
         else:
             pixelvalue = source_image[int(y)][int(x)]
-
-    return pixelvalue
+        return pixelvalue
 
 
 # ↓ Pixel reading, bilinear interpolation, configurable edge modes
