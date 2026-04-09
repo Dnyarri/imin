@@ -45,7 +45,7 @@ __author__ = 'Ilya Razmanov'
 __copyright__ = '(c) 2024-2026 Ilya Razmanov'
 __credits__ = 'Ilya Razmanov'
 __license__ = 'unlicense'
-__version__ = '26.4.9.8'
+__version__ = '26.4.9.13'
 __maintainer__ = 'Ilya Razmanov'
 __email__ = 'ilyarazmanov@gmail.com'
 __status__ = 'Development'
@@ -62,6 +62,7 @@ def _src(source_image: list[list[list[int]]], x: int | float, y: int | float, ed
 
     # ↓ Determining source image sizes.
     Y, X, Z = (len(source_image), len(source_image[0]), len(source_image[0][0]))
+    Z_COLOR = Z if Z == 1 or Z == 3 else min(Z - 1, 3)  # Number of color channels, alpha excluded.
 
     if edge == 1 or edge == 'repeat':
         # ↓ Repeat edge.
@@ -78,7 +79,12 @@ def _src(source_image: list[list[list[int]]], x: int | float, y: int | float, ed
     else:
         # ↓ Zeroes.
         if x < 0 or y < 0 or x > X - 1 or y > Y - 1:
-            pixelvalue = [0] * Z
+            if Z == 1 or Z == 3:
+                pixelvalue = [0] * Z
+            else:
+                cx = min(X - 1, max(0, int(x)))
+                cy = min(Y - 1, max(0, int(y)))
+                pixelvalue = [*source_image[cy][cx][:Z_COLOR], 0]
         else:
             pixelvalue = source_image[int(y)][int(x)]
         return pixelvalue
