@@ -47,7 +47,7 @@ __author__ = 'Ilya Razmanov'
 __copyright__ = '(c) 2024-2026 Ilya Razmanov'
 __credits__ = 'Ilya Razmanov'
 __license__ = 'unlicense'
-__version__ = '26.4.9.13'
+__version__ = '26.4.10.10'
 __maintainer__ = 'Ilya Razmanov'
 __email__ = 'ilyarazmanov@gmail.com'
 __status__ = 'Development'
@@ -58,12 +58,13 @@ from operator import mul
 
 # ↓ Pixel reading (local function), nearest neighbour interpolation,
 #   configurable edge modes
-def _src(source_image: list[list[list[int]]], x: int | float, y: int | float, edge: int | str = 'repeat') -> list[int]:
-    """Getting whole pixel from image list, nearest neighbour interpolation,
-    returns list[channel] for pixel(x, y)."""
+def _src(source_image: list[list[list[int]]], x: int | float, y: int | float, edge: int | str = 'repeat', X: int = 1, Y: int = 1, Z: int = 1) -> list[int]:
+    """Reading pixel(x, y) list from image nested list, nearest neighbour interpolation.
+    
+    .. warning:: Unlike global src(source_image,x,y,edge), **REQUIRES X, Y, Z**
+        to avoid recalculating it for every pixel!
+    """
 
-    # ↓ Determining source image sizes.
-    Y, X, Z = (len(source_image), len(source_image[0]), len(source_image[0][0]))
     Z_COLOR = Z if Z == 1 or Z == 3 else min(Z - 1, 3)  # Number of color channels, alpha excluded.
 
     if edge == 1 or edge == 'repeat':
@@ -80,20 +81,14 @@ def _src(source_image: list[list[list[int]]], x: int | float, y: int | float, ed
         return pixelvalue
     else:
         # ↓ Zeroes.
-        if x < 0 or y < 0 or x > X - 1 or y > Y - 1:
-            # Edge processing.
+        if x < 0 or y < 0 or x > X - 1 or y > Y - 1:  # Edge processing.
             if Z == 1 or Z == 3:
                 pixelvalue = [0] * Z
             else:
-                # ↓ For images with transparency,
-                #   edge transparency extrapolated as zeroes, but
-                #   edge color as "repeat edge".
-                #   This eliminates black edge artifacts.
                 cx = min(X - 1, max(0, int(x)))
                 cy = min(Y - 1, max(0, int(y)))
                 pixelvalue = [*source_image[cy][cx][:Z_COLOR], 0]
-        else:
-            # Non-edge processing.
+        else:  # Non-edge processing.
             pixelvalue = source_image[int(y)][int(x)]
         return pixelvalue
 
@@ -124,9 +119,7 @@ def bilinear(source_image: list[list[list[int]]], fx: callable, fy: callable, XN
     """
 
     # ↓ Determining source image sizes.
-    # Y = len(source_image)
-    # X = len(source_image[0])
-    Z = len(source_image[0][0])
+    Y, X, Z = (len(source_image), len(source_image[0]), len(source_image[0][0]))
 
     # ↓ Function was never FIR-optimized, but @lru_cache
     #   for source rows reading partially compensate for this.
@@ -134,11 +127,11 @@ def bilinear(source_image: list[list[list[int]]], fx: callable, fy: callable, XN
     #   on arbitrary displacement depend on exact displacement
     #   and therefore are unpredictable.
     @lru_cache
-    def _pixel(x: int, y: int, edge: int | str) -> list[int]:
+    def _pixel(x: int, y: int, edge: int | str, X: int, Y: int, Z: int) -> list[int]:
         """Local version of _src(x, y) with hardcoded source list name, good for caching."""
-        return _src(source_image, x, y, edge)
+        return _src(source_image, x, y, edge, X, Y, Z)
 
-    def _blin(x: float, y: float, edge: int | str) -> list[int]:
+    def _blin(x: float, y: float, edge: int | str, X: int, Y: int, Z: int) -> list[int]:
         """Local version of blin(x, y) based on _pixel(x, y). Returns interpolated pixel(x, y)."""
 
         def _intaddup_4(a, b, c, d):
@@ -153,7 +146,7 @@ def bilinear(source_image: list[list[list[int]]], fx: callable, fy: callable, XN
         else:
             y0 = int(y) - 1
 
-        pix00 = _pixel(x0, y0, edge)
+        pix00 = _pixel(x0, y0, edge, X, Y, Z)
         if x == x0 and y == y0:  # Direct hit. Returns from function!
             return pix00
         x1 = x0 + 1
@@ -163,14 +156,14 @@ def bilinear(source_image: list[list[list[int]]], fx: callable, fy: callable, XN
         wt10 = (((x - x0) * (y1 - y)),) * Z
         wt11 = (((x - x0) * (y - y0)),) * Z
         norm00 = [*map(mul, pix00, wt00)]
-        norm01 = [*map(mul, _pixel(x0, y1, edge), wt01)]
-        norm10 = [*map(mul, _pixel(x1, y0, edge), wt10)]
-        norm11 = [*map(mul, _pixel(x1, y1, edge), wt11)]
+        norm01 = [*map(mul, _pixel(x0, y1, edge, X, Y, Z), wt01)]
+        norm10 = [*map(mul, _pixel(x1, y0, edge, X, Y, Z), wt10)]
+        norm11 = [*map(mul, _pixel(x1, y1, edge, X, Y, Z), wt11)]
         pixelvalue = [*map(_intaddup_4, norm00, norm01, norm10, norm11)]
         return pixelvalue
 
     # ↓ Singe pass displacement
-    result_image = [[_blin(fx(x, y), fy(x, y), edge) for x in range(XNEW)] for y in range(YNEW)]
+    result_image = [[_blin(fx(x, y), fy(x, y), edge, X, Y, Z) for x in range(XNEW)] for y in range(YNEW)]
     # print(_pixel.cache_info())
 
     return result_image
@@ -202,9 +195,7 @@ def barycentric(source_image: list[list[list[int]]], fx: callable, fy: callable,
     """
 
     # ↓ Determining source image sizes.
-    # Y = len(source_image)
-    # X = len(source_image[0])
-    Z = len(source_image[0][0])
+    Y, X, Z = (len(source_image), len(source_image[0]), len(source_image[0][0]))
     Z_COLOR = Z if Z == 1 or Z == 3 else min(Z - 1, 3)
 
     # ↓ Function was never FIR-optimized, but @lru_cache
@@ -213,12 +204,12 @@ def barycentric(source_image: list[list[list[int]]], fx: callable, fy: callable,
     #   on arbitrary displacement depend on exact displacement
     #   and therefore are unpredictable.
     @lru_cache
-    def _pixel(x: int, y: int, edge: int | str) -> list[int]:
+    def _pixel(x: int, y: int, edge: int | str, X: int, Y: int, Z: int) -> list[int]:
         """Local version of _src(x, y) with hardcoded source list name, good for caching."""
-        return _src(source_image, x, y, edge)
+        return _src(source_image, x, y, edge, X, Y, Z)
 
-    def _baryc(x: float, y: float, edge: int | str) -> list[int]:
-        """Local version of baryc(x, y) based on _pixel(x, y). Returns interpolated pixel(x, y)."""
+    def _baryc(x: float, y: float, edge: int | str, X: int, Y: int, Z: int) -> list[int]:
+        """Local version of baryc(x, y) based on _pixel(x, y)."""
 
         def _intaddup_3(a, b, c):
             return int(a + b + c)
@@ -231,7 +222,7 @@ def barycentric(source_image: list[list[list[int]]], fx: callable, fy: callable,
             y1 = int(y)
         else:
             y1 = int(y) - 1
-        pix1 = _pixel(x1, y1, edge)
+        pix1 = _pixel(x1, y1, edge, X, Y, Z)
         if x == x1 and y == y1:  # Direct hit. Returns from function!
             return pix1
         x2 = x1 + 1
@@ -240,9 +231,9 @@ def barycentric(source_image: list[list[list[int]]], fx: callable, fy: callable,
         y3 = y1 + 1
         x4 = x1
         y4 = y3
-        pix2 = _pixel(x2, y2, edge)
-        pix3 = _pixel(x3, y3, edge)
-        pix4 = _pixel(x4, y4, edge)
+        pix2 = _pixel(x2, y2, edge, X, Y, Z)
+        pix3 = _pixel(x3, y3, edge, X, Y, Z)
+        pix4 = _pixel(x4, y4, edge, X, Y, Z)
 
         diff13 = abs(sum(pix1[:Z_COLOR]) - sum(pix3[:Z_COLOR]))
         diff24 = abs(sum(pix2[:Z_COLOR]) - sum(pix4[:Z_COLOR]))
@@ -321,7 +312,7 @@ def barycentric(source_image: list[list[list[int]]], fx: callable, fy: callable,
         return pixelvalue
 
     # ↓ Singe pass displacement
-    result_image = [[_baryc(fx(x, y), fy(x, y), edge) for x in range(XNEW)] for y in range(YNEW)]
+    result_image = [[_baryc(fx(x, y), fy(x, y), edge, X, Y, Z) for x in range(XNEW)] for y in range(YNEW)]
     # print(_pixel.cache_info())
 
     return result_image
@@ -331,14 +322,14 @@ def barycentric(source_image: list[list[list[int]]], fx: callable, fy: callable,
 def displace(source_image: list[list[list[int]]], fx: callable, fy: callable, XNEW: int, YNEW: int, edge: int | str = 0, method: int | str = 'bilinear') -> list[list[list[int]]]:
     """Image displacement according to ``fx`` and ``fy`` functions, using bilinear or barycentric interpolation depending on ``method``.
 
-    :param source_image: source image 3D list, coordinate system match Photoshop,
-        i.e. origin is top left corner, channels order is
-        LA or RGBA from bottom to top;
+    :param source_image: source image 3D nested list,
+        coordinate system match Photoshop, i.e. origin is top left corner,
+        channels order is LA or RGBA from bottom to top;
     :type source_image: list[list[list[int]]]
     :param fx: actual x coordinate to read as a function of (x, y) requested;
-    :type fx: function[float, float] -> float
+    :type fx: callable[float, float]
     :param fy: actual y coordinate to read as a function of (x, y) requested;
-    :type fy: function[float, float] -> float
+    :type fy: callable[float, float]
     :param int XNEW: ``result_image`` width, pixels;
     :param int YNEW: ``result_image`` height, pixels;
     :param int | str edge: edge extrapolation mode:

@@ -60,8 +60,8 @@ Shell programs GUI provides whole set of interpolation options; however, they do
 ## Prerequisite and Dependencies
 
 1. [Python](https://www.python.org/ "CPython") 3.11 or above.
-2. [PyPNG](https://gitlab.com/drj11/pypng "Pure Python PNG format module"). Copy included into current **imin** distribution.
-3. [PyPNM](https://pypi.org/project/PyPNM/ "Pure Python PPM and PGM format module"). Copy included into current **imin** distribution.
+2. [PyPNG](https://gitlab.com/drj11/pypng "Pure Python PNG format module"). Required for [PNG images reading and writing](https://drj11.gitlab.io/pypng "PyPNG docs"). Copy included into current **imin** distribution.
+3. [PyPNM](https://pypi.org/project/PyPNM/ "Pure Python PPM and PGM format module"). Required for [viewing image data, as well as PPM and PGM images reading and writing](https://dnyarri.github.io/pypnm.html "PyPNM provides viewing image data, as well as PPM and PGM images reading and writing"). Copy included into current **imin** distribution.
 4. Tkinter. Normally included into standard CPython distribution.
 
 ## Links

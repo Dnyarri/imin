@@ -46,7 +46,7 @@ __author__ = 'Ilya Razmanov'
 __copyright__ = '(c) 2023-2026 Ilya Razmanov'
 __credits__ = 'Ilya Razmanov'
 __license__ = 'unlicense'
-__version__ = '26.4.9.13'
+__version__ = '26.4.10.10'
 __maintainer__ = 'Ilya Razmanov'
 __email__ = 'ilyarazmanov@gmail.com'
 __status__ = 'Development'
@@ -56,8 +56,7 @@ from operator import mul
 
 # ↓ Pixel reading, nearest neighbour interpolation, configurable edge modes
 def src(source_image: list[list[list[int]]], x: int | float, y: int | float, edge: int | str) -> list[int]:
-    """Getting whole pixel from image list, nearest neighbour interpolation,
-    returns list[channel] for pixel(x, y).
+    """Reading pixel(x, y) list from image nested list, nearest neighbour interpolation.
 
     :param source_image: source image 3D nested list,
         coordinate system match Photoshop, i.e. origin is top left corner,
@@ -93,21 +92,16 @@ def src(source_image: list[list[list[int]]], x: int | float, y: int | float, edg
         pixelvalue = source_image[cy][cx]
         return pixelvalue
     else:
-        # ↓ Zeroes.
-        if x < 0 or y < 0 or x > X - 1 or y > Y - 1:
-            # Edge processing.
+        # ↓ Fill with zeroes. For images with transparency, edge transparency extrapolated as zeroes,
+        #   while edge color as "repeat edge". This eliminates black edge artifacts.
+        if x < 0 or y < 0 or x > X - 1 or y > Y - 1:  # Edge processing.
             if Z == 1 or Z == 3:
                 pixelvalue = [0] * Z
             else:
-                # ↓ For images with transparency,
-                #   edge transparency extrapolated as zeroes, but
-                #   edge color as "repeat edge".
-                #   This eliminates black edge artifacts.
                 cx = min(X - 1, max(0, int(x)))
                 cy = min(Y - 1, max(0, int(y)))
                 pixelvalue = [*source_image[cy][cx][:Z_COLOR], 0]
-        else:
-            # Non-edge processing.
+        else:  # Non-edge processing.
             pixelvalue = source_image[int(y)][int(x)]
         return pixelvalue
 
@@ -150,7 +144,7 @@ def blin(source_image: list[list[list[int]]], x: float, y: float, edge: int | st
      y1 │ 01 │ 11 │
         └────┴────┘
 
-    NOTE: Corners coordinates are calculated taking into account that
+    NOTE: Corners coordinates are calculated taking into account the fact that
     for negative x and y values int(x) > x and int(y) > y correspondingly. """
 
     if x >= 0:
@@ -253,13 +247,15 @@ def baryc(source_image: list[list[list[int]]], x: float, y: float, edge: int | s
         ├───┼───┤
         │ 4 │ 3 │
         └───┴───┘
-        and square divided onto two triangles by either 1-3 [╲] or 2-4 [╱] diagonal
-        depending on what difference is bigger (i.e. on directional local contrast). 
+        and square divided onto two triangles by either 1-3 [⧅] or 
+        2-4 [⧄] diagonal depending on what color difference is bigger
+        (i.e. on directional local contrast). 
 
-        Each triangle is right-angled and takes 0.5 of 1×1 length unit square area
-        (i.e. 2×2 pixel number square), that greatly simplifies calculation.
+        Each triangle is right-angled and takes 0.5 of area of
+        1×1 length unit square (i.e. 2×2 pixel number square),
+        that greatly simplifies calculation.
 
-    NOTE: Corners coordinates are calculated taking into account that
+    NOTE: Corners coordinates are calculated taking into account the fact that
     for negative x and y values int(x) > x and int(y) > y correspondingly. """
 
     if x >= 0:
@@ -291,14 +287,15 @@ def baryc(source_image: list[list[list[int]]], x: float, y: float, edge: int | s
 
     """ Now going to choose the diagonal for 2×2 pixel square folding based on
         comparing differences between pixels in 🡦 and 🡧 directions.
-        Currently total sum of channels (excluding alpha) is used for comparison.
+        Currently total sum of channel values (excluding alpha)
+        is used for comparison.
         The choice is questionable, but pro et contra may be given for any. """
 
     diff13 = abs(sum(pix1[:Z_COLOR]) - sum(pix3[:Z_COLOR]))
     diff24 = abs(sum(pix2[:Z_COLOR]) - sum(pix4[:Z_COLOR]))
 
     if diff13 < diff24:
-        # ↓ ╲ diagonal
+        # ↓ ⧅ diagonal
         if (x - x1) < (y - y1):
             # ↓ ◣ 1-3-4 triangle
             #   Doubled subtriangle area (i.e. base subrectangle area) is calculated,
@@ -336,7 +333,7 @@ def baryc(source_image: list[list[list[int]]], x: float, y: float, edge: int | s
             return pixelvalue
 
     if diff13 > diff24:
-        # ↓ ╱ diagonal
+        # ↓ ⧄ diagonal
         if (x - x1) < (y3 - y):
             # ↓ ◤ 1-2-4 triangle
             a = x - x1
@@ -371,8 +368,9 @@ def baryc(source_image: list[list[list[int]]], x: float, y: float, edge: int | s
 
             return pixelvalue
 
-    """ Take notice that code above does not include "diagonal contrast equal"
-        or "coordinate on diagonal, precisely" variants.
+    """ Take notice that criteria above do not comprise
+        "diagonal contrasts are equal" or "interpolated pixel is on diagonal,
+        precisely" variants.
         If none of the criteria above satisfied, situation is considered
         "symmetrical", and bilinear interpolation ensue to avoid
         introducing asymmetrical artifacts. """
@@ -406,8 +404,7 @@ def baryc(source_image: list[list[list[int]]], x: float, y: float, edge: int | s
 
 # ↓ Pixel reading, configurable interpolation, configurable edge modes
 def pixel(source_image: list[list[list[int]]], x: float, y: float, edge: int | str = 'repeat', method: int | str = 'bilinear') -> list[int]:
-    """Configurable method of reading interpolated pixel,
-    returns list[channel] for pixel(x, y).
+    """Configurable method of reading interpolated pixel(x, y).
 
     :param source_image: source image 3D list,
         coordinate system match Photoshop, i.e. origin is top left corner,
