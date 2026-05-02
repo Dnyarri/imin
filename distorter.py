@@ -27,7 +27,7 @@ __author__ = 'Ilya Razmanov'
 __copyright__ = '(c) 2026 Ilya Razmanov'
 __credits__ = 'Ilya Razmanov'
 __license__ = 'unlicense'
-__version__ = '26.4.8.20'
+__version__ = '26.5.2.22'
 __maintainer__ = 'Ilya Razmanov'
 __email__ = 'ilyarazmanov@gmail.com'
 __status__ = 'Development'
@@ -122,17 +122,11 @@ def ShowPreview(preview_choice: PhotoImage, caption: str) -> None:
 
     if zoom_factor > 0:
         preview = preview.zoom(zoom_factor + 1)
-        scaled_width = XSHOW * (zoom_factor + 1)
-        scaled_height = YSHOW * (zoom_factor + 1)
         label_zoom['text'] = f'{caption} {zoom_factor + 1}:1'
     elif zoom_factor < 0:
         preview = preview.subsample(1 - zoom_factor)
-        scaled_width = XSHOW // (1 - zoom_factor)
-        scaled_height = YSHOW // (1 - zoom_factor)
         label_zoom['text'] = f'{caption} 1:{1 - zoom_factor}'
     else:
-        scaled_width = XSHOW
-        scaled_height = YSHOW
         label_zoom['text'] = f'{caption} 1:1'
     zanyato.config(
         image=preview,
@@ -148,8 +142,8 @@ def ShowPreview(preview_choice: PhotoImage, caption: str) -> None:
         relief='flat',
         borderwidth=1,
         state='normal',
-        width=min(scaled_width, 9 * sortir.winfo_screenwidth() // 10),
-        height=min(scaled_height, (8 * sortir.winfo_screenheight() // 10) - frame_top.winfo_height() - info_string.winfo_height() - frame_zoom.winfo_height()),
+        width=min(preview.width(), 9 * sortir.winfo_screenwidth() // 10),
+        height=min(preview.height(), (8 * sortir.winfo_screenheight() // 10) - frame_top.winfo_height() - info_string.winfo_height() - frame_zoom.winfo_height()),
     )
 
 
