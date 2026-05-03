@@ -27,7 +27,7 @@ __author__ = 'Ilya Razmanov'
 __copyright__ = '(c) 2025-2026 Ilya Razmanov'
 __credits__ = 'Ilya Razmanov'
 __license__ = 'unlicense'
-__version__ = '26.5.2.22'
+__version__ = '26.5.3.5'
 __maintainer__ = 'Ilya Razmanov'
 __email__ = 'ilyarazmanov@gmail.com'
 __status__ = 'Development'
@@ -153,7 +153,6 @@ def GetSource(event=None) -> None:
     global preview, preview_src, preview_filtered  # preview and copies of preview
     global sourcefilename, X, Y, Z, maxcolors, source_image, info
     global XNEW, YNEW, result_image
-    global XSHOW, YSHOW
 
     old_sourcefilename = sourcefilename  # Temporary saving info in case of "Open.." cancel
     old_size = (X, Y, Z)
@@ -186,7 +185,6 @@ def GetSource(event=None) -> None:
         raise ValueError('Extension not recognized')
 
     XNEW, YNEW = (X, Y)
-    XSHOW, YSHOW = (X, Y)
 
     """ ┌────────────────────────────────────────────┐
         │ Creating deep copy of source 3D list       │
@@ -272,7 +270,6 @@ def RunFilter(event=None) -> None:
     global preview, preview_filtered
     global X, Y, Z, maxcolors, source_image, info
     global XNEW, YNEW, result_image
-    global XSHOW, YSHOW
 
     """ ┌──────────────────┐
         │ Filtering image. │
@@ -303,8 +300,6 @@ def RunFilter(event=None) -> None:
 
     XNEW = int(abs(X * COS) + abs(Y * SIN))
     YNEW = int(abs(X * SIN) + abs(Y * COS))
-
-    XSHOW, YSHOW = (XNEW, YNEW)
 
     def fx(x, y):
         return ((x - XNEW / 2) * COS) - ((y - YNEW / 2) * SIN) + X / 2
