@@ -45,7 +45,7 @@ __author__ = 'Ilya Razmanov'
 __copyright__ = '(c) 2024-2026 Ilya Razmanov'
 __credits__ = 'Ilya Razmanov'
 __license__ = 'unlicense'
-__version__ = '26.4.10.10'
+__version__ = '26.5.20.16'
 __maintainer__ = 'Ilya Razmanov'
 __email__ = 'ilyarazmanov@gmail.com'
 __status__ = 'Development'
@@ -246,10 +246,14 @@ def barycentric(source_image: list[list[list[int]]], XNEW: int, YNEW: int, edge:
     #   to 8 for images bigger than 256 * 256 px, and None otherwise.
     cache_size = 8 if X * Y > 256 * 256 else None
 
+    # ↓ Classic lru_cache syntax
     @lru_cache(maxsize=cache_size)
     def _pixel(x: int, y: int, edge: int | str, X: int, Y: int, Z: int) -> list[int]:
         """Local version of _src(x, y) with hardcoded source list name, good for caching."""
         return _src(source_image, x, y, edge, X, Y, Z)
+
+    # ↓ Alternative lru_cache syntax
+    # _pixel = lru_cache(maxsize=cache_size)(_pixel)
 
     def _baryc(x: float, y: float, edge: int | str, X: int, Y: int, Z: int) -> list[int]:
         """Local version of baryc(x, y) based on _pixel(x, y)."""
@@ -360,7 +364,9 @@ def barycentric(source_image: list[list[list[int]]], XNEW: int, YNEW: int, edge:
 
     # ↓ Singe pass rescaling
     result_image = [[_baryc(x_resize * x, y_resize * y, edge, X, Y, Z) for x in range(XNEW)] for y in range(YNEW)]
-    print(f'{_pixel.cache_info()=}')
+
+    # ↓ Cache stats
+    # print(f'{_pixel.cache_info()=} {(_pixel.cache_info()[0] / _pixel.cache_info()[1])=}')
 
     """
     # ↓ Single pass rescaling.
