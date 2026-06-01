@@ -27,7 +27,7 @@ __author__ = 'Ilya Razmanov'
 __copyright__ = '(c) 2025-2026 Ilya Razmanov'
 __credits__ = 'Ilya Razmanov'
 __license__ = 'unlicense'
-__version__ = '26.5.26.5'
+__version__ = '26.6.1.5'
 __maintainer__ = 'Ilya Razmanov'
 __email__ = 'ilyarazmanov@gmail.com'
 __status__ = 'Development'
@@ -111,17 +111,23 @@ def UIFit() -> None:
     fit_height = min(sortir.winfo_reqheight(), 9 * sortir.winfo_screenheight() // 10)
     sortir.minsize(fit_width, fit_height)
 
+
 def canvasCoord(event):
+    """Marking 'canvas' view point for further dragging."""
+
     canvas.scan_mark(event.x, event.y)
 
 
 def canvasDrag(event):
+    """Dragging 'canvas' Canvas."""
+
     canvas.scan_dragto(
         event.x,
         event.y,
         gain=1,
     )
     canvas['cursor'] = 'fleur'
+
 
 def ShowPreview(preview_choice: PhotoImage, caption: str) -> None:
     """Show 'preview_choice' PhotoImage, trying to fit 'zanyato' to screen."""
@@ -158,6 +164,24 @@ def ShowPreview(preview_choice: PhotoImage, caption: str) -> None:
         height=preview.height(),
     )
 
+
+def SwitchView(event=None) -> None:
+    """Switch preview between preview_src and preview_filtered."""
+
+    global zoom_factor, view_src, preview
+    global xs, xr, ys, yr  # view point coordinates in *s*ource and *r*esult image
+
+    view_src = not view_src  # cycling before ⇄ after
+    if view_src:
+        xr, yr = canvas.xview()[0], canvas.yview()[0]  # remember x, y for result image before switch to source
+        ShowPreview(preview_src, 'Source')  # switch to source
+        canvas.xview_moveto(xs)  # restore x, y for source image after switch to source
+        canvas.yview_moveto(ys)
+    else:
+        xs, ys = canvas.xview()[0], canvas.yview()[0]  # remember x, y for source image before switch to result
+        ShowPreview(preview_filtered, 'Result')  # switch to result
+        canvas.xview_moveto(xr)  # restore x, y for result image after switch to result
+        canvas.yview_moveto(yr)
 
 def GetSource(event=None) -> None:
     """Open source image and redefine other controls state."""
@@ -287,10 +311,9 @@ def RunFilter(event=None) -> None:
     global preview, preview_filtered
     global X, Y, Z, maxcolors, source_image, info
     global XNEW, YNEW, result_image
+    global xs, xr, ys, yr  # view point coordinates in *s*ource and *r*esult image
 
-    """ ┌──────────────────┐
-        │ Filtering image. │
-        └──────────────────┘ """
+    xs, ys = canvas.xview()[0], canvas.yview()[0]
 
     # ↓ filtering parameters
     if method_str.get() == 'Bilinear':
@@ -431,18 +454,6 @@ def zoomWheel(event) -> None:
             zoomOut()
         if event.delta > 0:
             zoomIn()
-
-
-def SwitchView(event=None) -> None:
-    """Switch preview between preview_src and preview_filtered."""
-
-    global zoom_factor, view_src, preview
-    view_src = not view_src
-    if view_src or is_saved:
-        ShowPreview(preview_src, 'Source')
-    else:
-        ShowPreview(preview_filtered, 'Result')
-
 
 def onSave() -> None:
     """Reassign images and other objects from new to old upon saving."""
