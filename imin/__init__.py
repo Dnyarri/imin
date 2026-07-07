@@ -46,7 +46,7 @@ __author__ = 'Ilya Razmanov'
 __copyright__ = '(c) 2023-2026 Ilya Razmanov'
 __credits__ = 'Ilya Razmanov'
 __license__ = 'unlicense'
-__version__ = '26.4.10.10'
+__version__ = '26.7.7.17'
 __maintainer__ = 'Ilya Razmanov'
 __email__ = 'ilyarazmanov@gmail.com'
 __status__ = 'Development'
@@ -107,7 +107,7 @@ def src(source_image: list[list[list[int]]], x: int | float, y: int | float, edg
 
 
 # ↓ Pixel reading, bilinear interpolation, configurable edge modes
-def blin(source_image: list[list[list[int]]], x: float, y: float, edge: int | str) -> list[int]:
+def _blin(source_image: list[list[list[int]]], x: float, y: float, edge: int | str) -> list[int]:
     """Returns bilinearly interpolated pixel(x, y).
 
     :param source_image: source image 3D list,
@@ -208,7 +208,7 @@ def blin(source_image: list[list[list[int]]], x: float, y: float, edge: int | st
 
 
 # ↓ Pixel reading, barycentric interpolation, configurable edge modes
-def baryc(source_image: list[list[list[int]]], x: float, y: float, edge: int | str) -> list[int]:
+def _baryc(source_image: list[list[list[int]]], x: float, y: float, edge: int | str) -> list[int]:
     """Returns barycentrically interpolated pixel(x, y).
 
     :param source_image: source image 3D list,
@@ -429,9 +429,9 @@ def pixel(source_image: list[list[list[int]]], x: float, y: float, edge: int | s
     """
 
     if method == 1 or method == 'bilinear':
-        return blin(source_image, x, y, edge)
+        return _blin(source_image, x, y, edge)
     elif method == 2 or method == 'barycentric':
-        return baryc(source_image, x, y, edge)
+        return _baryc(source_image, x, y, edge)
     elif method == 0 or method == 'nearest':
         return src(source_image, x, y, edge)
     else:

@@ -47,10 +47,11 @@ __author__ = 'Ilya Razmanov'
 __copyright__ = '(c) 2024-2026 Ilya Razmanov'
 __credits__ = 'Ilya Razmanov'
 __license__ = 'unlicense'
-__version__ = '26.4.10.10'
+__version__ = '26.7.7.17'
 __maintainer__ = 'Ilya Razmanov'
 __email__ = 'ilyarazmanov@gmail.com'
 __status__ = 'Development'
+__all__ = ['displace']
 
 from functools import lru_cache
 from operator import mul
@@ -320,7 +321,7 @@ def barycentric(source_image: list[list[list[int]]], fx: callable, fy: callable,
 
 # ↓ Image displacement, configurable interpolation, configurable edge modes
 def displace(source_image: list[list[list[int]]], fx: callable, fy: callable, XNEW: int, YNEW: int, edge: int | str = 0, method: int | str = 'bilinear') -> list[list[list[int]]]:
-    """Image displacement according to ``fx`` and ``fy`` functions, using bilinear or barycentric interpolation depending on ``method``.
+    """Image displacement according to ``fx`` and ``fy`` functions, using bilinear or barycentric interpolation depending on ``method`` switch.
 
     :param source_image: source image 3D nested list,
         coordinate system match Photoshop, i.e. origin is top left corner,
