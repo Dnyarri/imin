@@ -27,7 +27,7 @@ __author__ = 'Ilya Razmanov'
 __copyright__ = '(c) 2026 Ilya Razmanov'
 __credits__ = 'Ilya Razmanov'
 __license__ = 'unlicense'
-__version__ = '26.6.1.5'
+__version__ = '26.8.2.16'
 __maintainer__ = 'Ilya Razmanov'
 __email__ = 'ilyarazmanov@gmail.com'
 __status__ = 'Development'
@@ -41,10 +41,9 @@ from tkinter import Button, Canvas, DoubleVar, Frame, Label, Menu, Menubutton, O
 from tkinter.filedialog import askopenfilename, asksaveasfilename
 from tkinter.messagebox import showinfo
 
+from imin.displace import displace
 from pypng import list2png, png2list
 from pypnm import list2bin, list2pnm, pnm2list
-
-from imin.displace import displace
 
 """ ╔══════════════════════════════════╗
     ║ GUI events and functions thereof ║
@@ -133,7 +132,7 @@ def canvasDrag(event):
 def ShowPreview(preview_choice: PhotoImage, caption: str) -> None:
     """Show 'preview_choice' PhotoImage, trying to fit 'zanyato' to screen."""
 
-    global zoom_factor, preview
+    global preview
 
     preview = preview_choice
 
@@ -169,7 +168,7 @@ def ShowPreview(preview_choice: PhotoImage, caption: str) -> None:
 def SwitchView(event=None) -> None:
     """Switch preview between preview_src and preview_filtered."""
 
-    global zoom_factor, view_src, preview
+    global view_src
     global xs, xr, ys, yr  # view point coordinates in *s*ource and *r*esult image
 
     view_src = not view_src  # cycling before ⇄ after
@@ -183,6 +182,7 @@ def SwitchView(event=None) -> None:
         ShowPreview(preview_filtered, 'Result')  # switch to result
         canvas.xview_moveto(xr)  # restore x, y for result image after switch to result
         canvas.yview_moveto(yr)
+
 
 def GetSource(event=None) -> None:
     """Open source image and redefine other controls state."""
@@ -441,9 +441,8 @@ def GetMap() -> tuple[callable, callable, int, int]:
 def RunFilter(event=None) -> None:
     """Filter image, then preview result."""
 
-    global zoom_factor, view_src, is_filtered, is_saved, info_normal, color_mode_str, timing
-    global preview, preview_filtered
-    global X, Y, Z, maxcolors, source_image, info
+    global view_src, is_filtered, is_saved, info_normal, timing
+    global preview_filtered
     global XNEW, YNEW, result_image
     global xs, xr, ys, yr  # view point coordinates in *s*ource and *r*esult image
 
@@ -503,7 +502,8 @@ def RunFilter(event=None) -> None:
 def zoomIn(event=None) -> None:
     """Zoom preview in."""
 
-    global zoom_factor, view_src, preview
+    global zoom_factor
+
     zoom_factor = min(zoom_factor + 1, 4)  # max zoom 5
 
     if view_src:
@@ -524,7 +524,8 @@ def zoomIn(event=None) -> None:
 def zoomOut(event=None) -> None:
     """Zoom preview out."""
 
-    global zoom_factor, view_src, preview
+    global zoom_factor
+
     zoom_factor = max(zoom_factor - 1, -9)  # min zoom 1/10
 
     if view_src:
@@ -545,7 +546,8 @@ def zoomOut(event=None) -> None:
 def zoomOne(event=None) -> None:
     """Zoom 1:1."""
 
-    global zoom_factor, view_src, preview
+    global zoom_factor
+
     zoom_factor = 0
 
     if view_src:
@@ -569,12 +571,12 @@ def zoomWheel(event) -> None:
         if event.delta > 0:
             zoomIn()
 
+
 def onSave() -> None:
     """Reassign images and other objects from new to old upon saving."""
 
-    global preview_filtered, preview_src, info_normal
+    global preview_src, info_normal
     global sourcefilename, X, Y, Z, maxcolors, source_image
-    global resultfilename, XNEW, YNEW, result_image
 
     # ↓ saved file becomes new source file
     sourcefilename = resultfilename
@@ -599,8 +601,8 @@ def onSave() -> None:
 def Save(event=None) -> None:
     """Once pressed on Save."""
 
-    global is_filtered, is_saved, info_normal, color_mode_str
-    global sourcefilename, resultfilename
+    global is_filtered, is_saved
+    global resultfilename
 
     if is_saved:  # block repetitive saving
         return
@@ -625,8 +627,8 @@ def Save(event=None) -> None:
 def SaveAs(event=None) -> None:
     """Once pressed on Save as..."""
 
-    global is_saved, is_filtered, info_normal, color_mode_str
-    global sourcefilename, resultfilename
+    global is_saved, is_filtered
+    global resultfilename
 
     # ↓ Adjusting "Save as" formats to be displayed
     #   according to bitdepth and source extension
@@ -661,7 +663,7 @@ def SaveAs(event=None) -> None:
         initialfile=proposed_name,
     )
     if resultfilename == '':
-        return None
+        return
     UIBusy()
     # ↓ Save format choice
     if Path(resultfilename).suffix.lower() == '.png':

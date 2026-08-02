@@ -46,7 +46,7 @@ __author__ = 'Ilya Razmanov'
 __copyright__ = '(c) 2023-2026 Ilya Razmanov'
 __credits__ = 'Ilya Razmanov'
 __license__ = 'unlicense'
-__version__ = '26.7.7.17'
+__version__ = '26.8.2.16'
 __maintainer__ = 'Ilya Razmanov'
 __email__ = 'ilyarazmanov@gmail.com'
 __status__ = 'Development'
@@ -55,7 +55,7 @@ from operator import mul
 
 
 # ↓ Pixel reading, nearest neighbour interpolation, configurable edge modes
-def src(source_image: list[list[list[int]]], x: int | float, y: int | float, edge: int | str) -> list[int]:
+def src(source_image: list[list[list[int]]], x: float, y: float, edge: int | str) -> list[int]:
     """Reading pixel(x, y) list from image nested list, nearest neighbour interpolation.
 
     :param source_image: source image 3D nested list,

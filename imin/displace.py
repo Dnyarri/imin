@@ -47,7 +47,7 @@ __author__ = 'Ilya Razmanov'
 __copyright__ = '(c) 2024-2026 Ilya Razmanov'
 __credits__ = 'Ilya Razmanov'
 __license__ = 'unlicense'
-__version__ = '26.7.7.17'
+__version__ = '26.8.2.16'
 __maintainer__ = 'Ilya Razmanov'
 __email__ = 'ilyarazmanov@gmail.com'
 __status__ = 'Development'
@@ -59,7 +59,7 @@ from operator import mul
 
 # ↓ Pixel reading (local function), nearest neighbour interpolation,
 #   configurable edge modes
-def _src(source_image: list[list[list[int]]], x: int | float, y: int | float, edge: int | str = 'repeat', X: int = 1, Y: int = 1, Z: int = 1) -> list[int]:
+def _src(source_image: list[list[list[int]]], x: float, y: float, edge: int | str = 'repeat', X: int = 1, Y: int = 1, Z: int = 1) -> list[int]:
     """Reading pixel(x, y) list from image nested list, nearest neighbour interpolation.
     
     .. warning:: Unlike global src(source_image,x,y,edge), **REQUIRES X, Y, Z**
