@@ -27,7 +27,7 @@ __author__ = 'Ilya Razmanov'
 __copyright__ = '(c) 2026 Ilya Razmanov'
 __credits__ = 'Ilya Razmanov'
 __license__ = 'unlicense'
-__version__ = '26.8.2.16'
+__version__ = '26.8.21.9'
 __maintainer__ = 'Ilya Razmanov'
 __email__ = 'ilyarazmanov@gmail.com'
 __status__ = 'Development'
@@ -237,19 +237,17 @@ def GetSource(event=None) -> None:
     preview_data = list2bin(result_image, maxcolors, show_chessboard=True)
     # ↓ Now generating preview from "preview_data" bytes using Tkinter
     preview = PhotoImage(data=preview_data)
-    # ↓ Finally the show part
-    ShowPreview(preview, 'Source')
 
-    """ ┌─────────────────────────────────────────────┐
-        │ Creating copy of source preview for further │
-        │ switch between source and result            │
-        └─────────────────────────────────────────────┘ """
+    # ↓ Creating copy of source preview for further
+    #   fast switch between source and result.
     preview_src = preview_filtered = preview
 
-    # ↓ Attempt to zoom to fit. Singe zoomOut() must fit for a reasonable image size.
-    #   GUI X extra = 8 px, GUI Y extra = 150 px
-    if X + 16 > sortir.winfo_screenwidth() or Y + 152 > sortir.winfo_screenheight():
-        zoomOut()
+    # ↓ Calculate zoom factor for "Zoom to fit".
+    if preview.width() > sortir.winfo_screenwidth() or (128 + preview.height() + frame_top.winfo_reqheight()) > sortir.winfo_screenheight():
+        zoom_factor = max(-max(preview.width() // sortir.winfo_screenwidth(), (128 + preview.height() + frame_top.winfo_reqheight() + frame_zoom.winfo_reqheight() + info_string.winfo_reqheight()) // sortir.winfo_screenheight()), minizoom)
+
+    # ↓ Finally the show part
+    ShowPreview(preview, 'Source')
 
     # ↓ Binding preview mouse drag
     zanyato.bind('<Motion>', canvasCoord)
@@ -305,7 +303,7 @@ def GetSource(event=None) -> None:
     in02.bind('<Leave>', lambda event=None: in02.config(foreground=butt['foreground'], background='white'))
     UINormal()
     UIFit()
-    sortir.geometry(f'+{(sortir.winfo_screenwidth() - sortir.winfo_width()) // 2}+{(sortir.winfo_screenheight() - sortir.winfo_height()) // 2 - 32}')
+    sortir.geometry(f'+{(sortir.winfo_screenwidth() - sortir.winfo_width()) // 2}+64')
     zanyato.focus_set()
 
 
@@ -504,7 +502,7 @@ def zoomIn(event=None) -> None:
 
     global zoom_factor
 
-    zoom_factor = min(zoom_factor + 1, 4)  # max zoom 5
+    zoom_factor = min(zoom_factor + 1, maxizoom)  # max zoom 5
 
     if view_src:
         ShowPreview(preview_src, 'Source')
@@ -513,7 +511,7 @@ def zoomIn(event=None) -> None:
 
     # ↓ reenabling +/- buttons
     butt_minus.config(state='normal', cursor='hand2')
-    if zoom_factor == 4:  # max zoom 5
+    if zoom_factor == maxizoom:  # max zoom 5
         butt_plus.config(state='disabled', cursor='arrow')
     else:
         butt_plus.config(state='normal', cursor='hand2')
@@ -526,7 +524,7 @@ def zoomOut(event=None) -> None:
 
     global zoom_factor
 
-    zoom_factor = max(zoom_factor - 1, -9)  # min zoom 1/10
+    zoom_factor = max(zoom_factor - 1, minizoom)  # min zoom 1/10
 
     if view_src:
         ShowPreview(preview_src, 'Source')
@@ -535,7 +533,7 @@ def zoomOut(event=None) -> None:
 
     # ↓ reenabling +/- buttons
     butt_plus.config(state='normal', cursor='hand2')
-    if zoom_factor == -9:  # min zoom 1/10
+    if zoom_factor == minizoom:  # min zoom 1/10
         butt_minus.config(state='disabled', cursor='arrow')
     else:
         butt_minus.config(state='normal', cursor='hand2')
@@ -719,6 +717,7 @@ view_src = True
 is_filtered = False
 timing = None
 product_name = 'Dist⧣rter'
+minizoom, maxizoom = (-4, 9)  # Zoom from 1:5 to 10:1
 
 sortir = Tk()
 
@@ -988,6 +987,6 @@ sortir.update()
 # print(sortir.winfo_width(), sortir.winfo_height())
 UIFit()
 sortir.maxsize(9 * sortir.winfo_screenwidth() // 10, 9 * sortir.winfo_screenheight() // 10)
-sortir.geometry(f'+{(sortir.winfo_screenwidth() - sortir.winfo_width()) // 2}+100')
+sortir.geometry(f'+{(sortir.winfo_screenwidth() - sortir.winfo_width()) // 2}+64')
 
 sortir.mainloop()
