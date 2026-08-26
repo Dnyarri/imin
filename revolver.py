@@ -27,7 +27,7 @@ __author__ = 'Ilya Razmanov'
 __copyright__ = '(c) 2025-2026 Ilya Razmanov'
 __credits__ = 'Ilya Razmanov'
 __license__ = 'unlicense'
-__version__ = '26.8.26.18'
+__version__ = '26.8.26.24'
 __maintainer__ = 'Ilya Razmanov'
 __email__ = 'ilyarazmanov@gmail.com'
 __status__ = 'Development'
@@ -151,6 +151,7 @@ def ShowPreview(preview_choice: PhotoImage, caption: str) -> None:
     zanyato.config(
         image=preview,
         relief='flat',
+        borderwidth=0,
     )
     canvas.config(
         width=preview_width,
