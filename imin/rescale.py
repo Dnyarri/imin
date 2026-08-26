@@ -45,7 +45,7 @@ __author__ = 'Ilya Razmanov'
 __copyright__ = '(c) 2024-2026 Ilya Razmanov'
 __credits__ = 'Ilya Razmanov'
 __license__ = 'unlicense'
-__version__ = '26.8.2.16'
+__version__ = '26.8.26.18'
 __maintainer__ = 'Ilya Razmanov'
 __email__ = 'ilyarazmanov@gmail.com'
 __status__ = 'Development'
@@ -53,6 +53,7 @@ __all__ = ['rescale']
 
 from functools import lru_cache
 from operator import mul
+from typing import Literal
 
 
 # ↓ Pixel reading (local function), nearest neighbour interpolation,
@@ -380,7 +381,7 @@ def barycentric(source_image: list[list[list[int]]], XNEW: int, YNEW: int, edge:
 
 
 # ↓ Image rescaling, configurable interpolation, configurable edge modes
-def rescale(source_image: list[list[list[int]]], XNEW: int, YNEW: int, edge: int | str = 'repeat', method: int | str = 'bilinear') -> list[list[list[int]]]:
+def rescale(source_image: list[list[list[int]]], XNEW: int, YNEW: int, edge: Literal['zero', 'repeat', 'wrap', 0, 1, 2] = 'repeat', method: Literal['nearest', 'bilinear', 'barycentric', 0, 1, 2] = 'bilinear') -> list[list[list[int]]]:
     """Image rescaling with ``bilinear`` or ``barycentric`` depending on ``method``.
 
     :param source_image: source image 3D nested list,

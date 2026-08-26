@@ -46,12 +46,13 @@ __author__ = 'Ilya Razmanov'
 __copyright__ = '(c) 2023-2026 Ilya Razmanov'
 __credits__ = 'Ilya Razmanov'
 __license__ = 'unlicense'
-__version__ = '26.8.2.16'
+__version__ = '26.8.26.18'
 __maintainer__ = 'Ilya Razmanov'
 __email__ = 'ilyarazmanov@gmail.com'
 __status__ = 'Development'
 
 from operator import mul
+from typing import Literal
 
 
 # ↓ Pixel reading, nearest neighbour interpolation, configurable edge modes
@@ -403,7 +404,7 @@ def _baryc(source_image: list[list[list[int]]], x: float, y: float, edge: int | 
 
 
 # ↓ Pixel reading, configurable interpolation, configurable edge modes
-def pixel(source_image: list[list[list[int]]], x: float, y: float, edge: int | str = 'repeat', method: int | str = 'bilinear') -> list[int]:
+def pixel(source_image: list[list[list[int]]], x: float, y: float, edge: Literal['zero', 'repeat', 'wrap', 0, 1, 2] = 'repeat', method: Literal['nearest', 'bilinear', 'barycentric', 0, 1, 2] = 'bilinear') -> list[int]:
     """Configurable method of reading interpolated pixel(x, y).
 
     :param source_image: source image 3D list,

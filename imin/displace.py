@@ -47,7 +47,7 @@ __author__ = 'Ilya Razmanov'
 __copyright__ = '(c) 2024-2026 Ilya Razmanov'
 __credits__ = 'Ilya Razmanov'
 __license__ = 'unlicense'
-__version__ = '26.8.2.16'
+__version__ = '26.8.26.18'
 __maintainer__ = 'Ilya Razmanov'
 __email__ = 'ilyarazmanov@gmail.com'
 __status__ = 'Development'
@@ -55,13 +55,14 @@ __all__ = ['displace']
 
 from functools import lru_cache
 from operator import mul
+from typing import Literal
 
 
 # ↓ Pixel reading (local function), nearest neighbour interpolation,
 #   configurable edge modes
 def _src(source_image: list[list[list[int]]], x: float, y: float, edge: int | str = 'repeat', X: int = 1, Y: int = 1, Z: int = 1) -> list[int]:
     """Reading pixel(x, y) list from image nested list, nearest neighbour interpolation.
-    
+
     .. warning:: Unlike global src(source_image,x,y,edge), **REQUIRES X, Y, Z**
         to avoid recalculating it for every pixel!
     """
@@ -320,7 +321,9 @@ def barycentric(source_image: list[list[list[int]]], fx: callable, fy: callable,
 
 
 # ↓ Image displacement, configurable interpolation, configurable edge modes
-def displace(source_image: list[list[list[int]]], fx: callable, fy: callable, XNEW: int, YNEW: int, edge: int | str = 0, method: int | str = 'bilinear') -> list[list[list[int]]]:
+def displace(
+    source_image: list[list[list[int]]], fx: callable, fy: callable, XNEW: int, YNEW: int, edge: Literal['zero', 'repeat', 'wrap', 0, 1, 2] = 0, method: Literal['nearest', 'bilinear', 'barycentric', 0, 1, 2] = 'bilinear'
+) -> list[list[list[int]]]:
     """Image displacement according to ``fx`` and ``fy`` functions, using bilinear or barycentric interpolation depending on ``method`` switch.
 
     :param source_image: source image 3D nested list,
