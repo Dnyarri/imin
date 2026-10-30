@@ -27,7 +27,7 @@ __author__ = 'Ilya Razmanov'
 __copyright__ = '(c) 2026 Ilya Razmanov'
 __credits__ = 'Ilya Razmanov'
 __license__ = 'unlicense'
-__version__ = '26.8.26.24'
+__version__ = '26.10.30.15'
 __maintainer__ = 'Ilya Razmanov'
 __email__ = 'ilyarazmanov@gmail.com'
 __status__ = 'Development'
@@ -37,7 +37,7 @@ from copy import deepcopy
 from pathlib import Path
 from random import randbytes  # Used for random icon only
 from time import ctime, time
-from tkinter import Button, Canvas, DoubleVar, Frame, Label, Menu, Menubutton, OptionMenu, PhotoImage, Spinbox, StringVar, Tk
+from tkinter import Button, Canvas, DoubleVar, Frame, Label, LabelFrame, Menu, Menubutton, OptionMenu, PhotoImage, Spinbox, StringVar, Tk, Toplevel
 from tkinter.filedialog import askopenfilename, asksaveasfilename
 from tkinter.messagebox import showinfo
 
@@ -107,8 +107,10 @@ def UIFit() -> None:
     """Readopting 'sortir.minsize' to fit the screen."""
 
     sortir.update()
-    fit_width = min(sortir.winfo_reqwidth(), 9 * sortir.winfo_screenwidth() // 10)
-    fit_height = min(sortir.winfo_reqheight(), 9 * sortir.winfo_screenheight() // 10)
+    fit_width, fit_height = (
+        min(sortir.winfo_reqwidth(), 9 * sortir.winfo_screenwidth() // 10),
+        min(sortir.winfo_reqheight(), 9 * sortir.winfo_screenheight() // 10),
+    )
     sortir.minsize(fit_width, fit_height)
 
 
@@ -136,6 +138,7 @@ def ShowPreview(preview_choice: PhotoImage, caption: str) -> None:
 
     preview = preview_choice
 
+    frame_preview.config(text=f'{product_name} {caption.lower()}')
     if zoom_factor > 0:
         preview = preview.zoom(zoom_factor + 1)
         label_zoom['text'] = f'{caption} {zoom_factor + 1}:1'
@@ -293,7 +296,7 @@ def GetSource(event=None) -> None:
         color_mode_str = f' (RGBA:{"8" if maxcolors < 256 else "16"})'
     else:
         color_mode_str = ''  # Just in case
-    sortir.title(f'{product_name}: {Path(sourcefilename).name}{color_mode_str}{"*" if is_filtered else ""}')
+    sortir.title(f'{Path(sourcefilename).name}{color_mode_str}{"*" if is_filtered else ""} | VidWindow')
     info_normal = {'txt': f'{Path(sourcefilename).name}{"*" if is_filtered else ""} X={X} Y={Y} Z={Z} maxcolors={maxcolors}', 'fg': 'grey', 'bg': 'grey90'}
     # ↓ "Filter" mouseover
     butt_filter.bind('<Enter>', lambda event=None: butt_filter.config(foreground=butt['activeforeground'], background=butt['activebackground']))
@@ -305,7 +308,8 @@ def GetSource(event=None) -> None:
     in02.bind('<Leave>', lambda event=None: in02.config(foreground=butt['foreground'], background='white'))
     UINormal()
     UIFit()
-    sortir.geometry(f'+{(sortir.winfo_screenwidth() - sortir.winfo_width()) // 2}+64')
+    sortir.geometry(f'{sortir.winfo_reqwidth()}x{sortir.winfo_reqheight()}')
+    whoever.geometry(f'{whoever.winfo_reqwidth()}x{whoever.winfo_reqheight()}')  # width may change!
     zanyato.focus_set()
 
 
@@ -444,7 +448,7 @@ def RunFilter(event=None) -> None:
     global view_src, is_filtered, is_saved, info_normal, timing
     global preview_filtered
     global XNEW, YNEW, result_image
-    global xs, xr, ys, yr  # view point coordinates in *s*ource and *r*esult image
+    global xs, xr, ys, yr  # noqa: PLW0602
 
     xs, ys = canvas.xview()[0], canvas.yview()[0]
 
@@ -493,9 +497,11 @@ def RunFilter(event=None) -> None:
     # zanyato.bind('<ButtonRelease-1>', SwitchView)
     zanyato.bind('<space>', SwitchView)  # # "Space" key. May be worth binding whole sortir?
     # ↓ Adding filename, mode and status to window title a-la Photoshop
-    sortir.title(f'{product_name}: {Path(sourcefilename).name}{color_mode_str}{"*" if is_filtered else ""}')
+    sortir.title(f'{Path(sourcefilename).name}{color_mode_str}{"*" if is_filtered else ""} | VidWindow')
     info_normal = {'txt': f'{Path(sourcefilename).name}{"*" if is_filtered else ""} X={XNEW if is_filtered else X} Y={YNEW if is_filtered else Y} Z={Z} maxcolors={maxcolors}', 'fg': 'grey', 'bg': 'grey90'}
     UINormal()
+    sortir.geometry(f'{sortir.winfo_reqwidth()}x{sortir.winfo_reqheight()}')
+    whoever.geometry(f'{whoever.winfo_reqwidth()}x{whoever.winfo_reqheight()}')  # width may change!
     zanyato.focus_set()  # moving focus to preview
 
 
@@ -540,7 +546,7 @@ def zoomOut(event=None) -> None:
     else:
         butt_minus.config(state='normal', cursor='hand2')
     UIFit()
-    sortir.update()
+    sortir.geometry(f'{sortir.winfo_reqwidth()}x{sortir.winfo_reqheight()}')
 
 
 def zoomOne(event=None) -> None:
@@ -576,7 +582,7 @@ def onSave() -> None:
     """Reassign images and other objects from new to old upon saving."""
 
     global preview_src, info_normal
-    global sourcefilename, X, Y, Z, maxcolors, source_image
+    global sourcefilename, X, Y, Z, maxcolors, source_image  # noqa: PLW0602
 
     # ↓ saved file becomes new source file
     sourcefilename = resultfilename
@@ -593,7 +599,7 @@ def onSave() -> None:
     # ↓ preview source
     ShowPreview(preview_src, 'Source')
     # ↓ Adding filename, mode and status to window title a-la Photoshop
-    sortir.title(f'{product_name}: {Path(sourcefilename).name}{color_mode_str}{"*" if is_filtered else ""}')
+    sortir.title(f'{Path(sourcefilename).name}{color_mode_str}{"*" if is_filtered else ""} | VidWindow')
     info_normal = {'txt': f'{Path(sourcefilename).name}{"*" if is_filtered else ""} X={X} Y={Y} Z={Z} maxcolors={maxcolors}', 'fg': 'grey', 'bg': 'grey90'}
     UINormal()
 
@@ -718,15 +724,20 @@ zoom_factor = 0
 view_src = True
 is_filtered = False
 timing = None
-product_name = 'Dist⧣rter'
+product_name = 'Dist⌇rter'  # 🌊 ⌇
 minizoom, maxizoom = (-4, 9)  # Zoom from 1:5 to 10:1
 
 sortir = Tk()
-
 sortir.iconphoto(True, PhotoImage(data='P6\n3 3\n255\n'.encode(encoding='ascii') + randbytes(3 * 3 * 3)))
-sortir.title(product_name)
+sortir.title(f'{product_name} | VidWindow')
 
 validate_entry = sortir.register(valiDig)
+
+whoever = Toplevel(sortir)
+whoever.title(f'{product_name} {__version__} | Controls')
+whoever.transient(sortir)  # make control panel always on top
+whoever.protocol('WM_DELETE_WINDOW', lambda: None)  # block any attempt to close control panel
+sortir.protocol('WM_DELETE_WINDOW', DisMiss)  # just to be temporarily explicit
 
 # ↓ Buttons dictionaries
 butt = {
@@ -746,13 +757,20 @@ info_normal = {'txt': f'{product_name} {__version__}', 'fg': 'grey', 'bg': 'grey
 info_busy = {'txt': 'BUSY, PLEASE WAIT', 'fg': 'red', 'bg': 'yellow'}
 color_mode_str = ' '
 # ↓ Info string
-info_string = Label(sortir, text=info_normal['txt'], font=('courier', 7), foreground=info_normal['fg'], background=info_normal['bg'], relief='groove')
+info_string = Label(
+    whoever,
+    text=info_normal['txt'],
+    font=('helvetica', 8),
+    foreground=info_normal['fg'],
+    background=info_normal['bg'],
+    relief='groove',
+)
 info_string.pack(side='bottom', padx=0, pady=(2, 0), fill='both')
 
 """ ┌──────────────────────┐
     │ Top frame (controls) │
     └─────────────────────-┘ """
-frame_top = Frame(sortir, borderwidth=2, relief='groove')
+frame_top = Frame(whoever, borderwidth=2, relief='groove')
 frame_top.pack(side='top', anchor='w', pady=(0, 2))
 
 col = 0
@@ -912,7 +930,12 @@ butt_filter.grid(row=0, column=col, sticky='nsew', padx=(6, 0), pady=0)
 """ ┌──────────────────────────────┐
     │ Center frame (image preview) │
     └─────────────────────────────-┘ """
-frame_preview = Frame(sortir, borderwidth=2, relief='groove')
+frame_preview = LabelFrame(
+    sortir,
+    text='Preview area',
+    font=('helvetica', 8),
+    relief='groove',
+)
 frame_preview.pack(side='top', anchor='center', expand=True)
 
 canvas = Canvas(
@@ -924,7 +947,7 @@ canvas.pack()
 
 zanyato = Label(
     canvas,
-    text='Preview area.\n  Double click to open image,\n  Right click or Alt+F for a menu.\nWith image opened,\n  Ctrl+Click to zoom in,\n  Alt+Click to zoom out,\n  Enter to filter.\nWhen filtered, click or Space bar\nto switch source/result.',
+    text='Preview area.\n  Double click to open image,\n  Right click or Alt+F for a menu.\nWith image opened,\n  Ctrl+Click to zoom in,\n  Alt+Click to zoom out,\n  Enter to process image.\nWhen image processed,\n  Space to switch source/result.',
     font=('helvetica', 12),
     justify='left',
     padx=24,
@@ -984,11 +1007,19 @@ sortir.bind_all('<Control-Q>', DisMiss)
 sortir.bind_all('<Control-w>', DisMiss)
 sortir.bind_all('<Control-W>', DisMiss)
 
-# ↓ Center window horizontally, +100 vertically
+# ↓ Make Tkinter build GUI to make it calculate requested sizes.
 sortir.update()
-# print(sortir.winfo_width(), sortir.winfo_height())
+whoever.update()
+whoever.resizable(False, False)
+
+# ↓ Readopting minsize
 UIFit()
+whoever.minsize(whoever.winfo_reqwidth(), whoever.winfo_reqheight())
+# ↓ Setting maxsize to fit 90% of screen
 sortir.maxsize(9 * sortir.winfo_screenwidth() // 10, 9 * sortir.winfo_screenheight() // 10)
-sortir.geometry(f'+{(sortir.winfo_screenwidth() - sortir.winfo_width()) // 2}+64')
+# ↓ Align windows and center window group horizontally, +64 vertically
+sortir.geometry(f'+{(sortir.winfo_screenwidth() - sortir.winfo_width() - whoever.winfo_width() + 64) // 2}+64')
+sortir.update()
+whoever.geometry(f'+{sortir.winfo_rootx() + sortir.winfo_reqwidth() - 64}+{sortir.winfo_rooty() + 32}')
 
 sortir.mainloop()
