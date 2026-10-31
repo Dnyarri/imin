@@ -27,7 +27,7 @@ __author__ = 'Ilya Razmanov'
 __copyright__ = '(c) 2025-2026 Ilya Razmanov'
 __credits__ = 'Ilya Razmanov'
 __license__ = 'unlicense'
-__version__ = '26.10.30.15'
+__version__ = '26.10.31.11'
 __maintainer__ = 'Ilya Razmanov'
 __email__ = 'ilyarazmanov@gmail.com'
 __status__ = 'Development'
@@ -76,9 +76,8 @@ def ShowInfo(event=None) -> None:
 def UINormal() -> None:
     """Normal UI state, controls enabled."""
 
-    for widget in frame_top.winfo_children():
-        if widget.winfo_class() in ('Label', 'Button', 'OptionMenu', 'Checkbutton', 'Entry'):
-            widget['state'] = 'normal'
+    for widget in vkl:
+        widget['state'] = 'normal'
         if widget.winfo_class() == 'Button':
             widget['cursor'] = 'hand2'
     method_menu['state'] = 'normal'
@@ -89,9 +88,8 @@ def UINormal() -> None:
 def UIBusy() -> None:
     """Busy UI state, controls disabled."""
 
-    for widget in frame_top.winfo_children():
-        if widget.winfo_class() in ('Label', 'Button', 'OptionMenu', 'Checkbutton', 'Entry'):
-            widget['state'] = 'disabled'
+    for widget in vkl:
+        widget['state'] = 'disabled'
         if widget.winfo_class() == 'Button':
             widget['cursor'] = 'arrow'
     method_menu['state'] = 'disabled'
@@ -145,13 +143,14 @@ def ShowPreview(preview_choice: PhotoImage, caption: str) -> None:
         label_zoom['text'] = f'{caption} 1:1'
 
     # ↓ Sizes of preview to fit the screen
-    preview_width = min(preview.width(), 8 * sortir.winfo_screenwidth() // 10)
-    preview_height = min(preview.height(), (8 * sortir.winfo_screenheight() // 10) - frame_top.winfo_height() - info_string.winfo_height() - frame_zoom.winfo_height())
-
     zanyato.config(
         image=preview,
         relief='flat',
         borderwidth=0,
+    )
+    preview_width, preview_height = (
+        min(preview.width(), 9 * sortir.winfo_screenwidth() // 10),
+        min(preview.height(), (9 * sortir.winfo_screenheight() // 10) - frame_zoom.winfo_reqheight() - info_string.winfo_reqheight() - 20),
     )
     canvas.config(
         width=preview_width,
@@ -336,7 +335,7 @@ def GetSource(event=None) -> None:
     UINormal()
     UIFit()
     sortir.geometry(f'{sortir.winfo_reqwidth()}x{sortir.winfo_reqheight()}')
-    whoever.geometry(f'{whoever.winfo_reqwidth()}x{whoever.winfo_reqheight()}')  # width may change!
+    whoever.geometry(f'+{min(sortir.winfo_rootx() + sortir.winfo_reqwidth() + 4, sortir.winfo_screenwidth() - whoever.winfo_reqwidth() - 16)}+{max(sortir.winfo_y(), 32)}')
     zanyato.focus_set()
 
 
@@ -393,7 +392,7 @@ def RunFilter(event=None) -> None:
     info_normal = {'txt': f'{Path(sourcefilename).name}{"*" if is_filtered else ""} X={XNEW if is_filtered else X} Y={YNEW if is_filtered else Y} Z={Z} maxcolors={maxcolors}', 'fg': 'grey', 'bg': 'grey90'}
     UINormal()
     sortir.geometry(f'{sortir.winfo_reqwidth()}x{sortir.winfo_reqheight()}')
-    whoever.geometry(f'{whoever.winfo_reqwidth()}x{whoever.winfo_reqheight()}')  # width may change!
+    whoever.geometry(f'+{min(sortir.winfo_rootx() + sortir.winfo_reqwidth() + 4, sortir.winfo_screenwidth() - whoever.winfo_reqwidth() - 16)}+{max(sortir.winfo_y(), 32)}')
     zanyato.focus_set()  # moving focus to preview
 
 
@@ -416,7 +415,8 @@ def zoomIn(event=None) -> None:
     else:
         butt_plus.config(state='normal', cursor='hand2')
     UIFit()
-    sortir.update()
+    sortir.geometry(f'{sortir.winfo_reqwidth()}x{sortir.winfo_reqheight()}')
+    whoever.geometry(f'+{min(sortir.winfo_rootx() + sortir.winfo_reqwidth() + 4, sortir.winfo_screenwidth() - whoever.winfo_reqwidth() - 16)}+{max(sortir.winfo_y(), 32)}')
 
 
 def zoomOut(event=None) -> None:
@@ -439,6 +439,7 @@ def zoomOut(event=None) -> None:
         butt_minus.config(state='normal', cursor='hand2')
     UIFit()
     sortir.geometry(f'{sortir.winfo_reqwidth()}x{sortir.winfo_reqheight()}')
+    whoever.geometry(f'+{min(sortir.winfo_rootx() + sortir.winfo_reqwidth() + 4, sortir.winfo_screenwidth() - whoever.winfo_reqwidth() - 16)}+{max(sortir.winfo_y(), 32)}')
 
 
 def zoomOne(event=None) -> None:
@@ -650,9 +651,9 @@ info_busy = {'txt': 'BUSY, PLEASE WAIT', 'fg': 'red', 'bg': 'yellow'}
 color_mode_str = ' '
 # ↓ Info string
 info_string = Label(
-    whoever,
+    sortir,
     text=info_normal['txt'],
-    font=('helvetica', 8),
+    font=('helvetica', 7),
     foreground=info_normal['fg'],
     background=info_normal['bg'],
     relief='groove',
@@ -665,9 +666,7 @@ info_string.pack(side='bottom', padx=0, pady=(2, 0), fill='both')
 frame_top = Frame(whoever, borderwidth=2, relief='groove')
 frame_top.pack(side='top', anchor='w', pady=(0, 2))
 
-col = 0
-
-# ↓ File menu
+# ↓ File menubutton
 butt_file = Menubutton(
     frame_top,
     text='File...',
@@ -682,8 +681,7 @@ butt_file = Menubutton(
     state='normal',
     indicatoron=False,
 )
-butt_file.grid(row=0, column=col, rowspan=2, sticky='ns', padx=(0, 10), pady=0)
-col += 1
+butt_file.grid(row=0, column=0, sticky='nsew', padx=(0, 6), pady=0)
 
 menu02 = Menu(butt_file, tearoff=False)  # "File" menu
 menu02.add_command(label='Open...', state='normal', command=GetSource, accelerator='Ctrl+O')
@@ -699,19 +697,36 @@ butt_file['menu'] = menu02
 
 butt_file.focus_set()  # Setting focus to "File..."
 
-# ↓ Filter section begins
-info00 = Label(frame_top, text='Size:', font=('helvetica', 8, 'italic'), justify='right', foreground='brown', state='disabled')
-info00.grid(row=0, column=col)
-col += 1
+""" ┌──────────────────────┐
+    │ Sub-frame (controls) │
+    └─────────────────────-┘ """
+frame_size = LabelFrame(
+    frame_top,
+    text='Target size',
+    font=('helvetica', 8),
+    relief='groove',
+)
+frame_size.grid(row=1, column=0, columnspan=2, sticky='nsew')
+
+frame_method = LabelFrame(
+    frame_top,
+    text='Interpolation method',
+    font=('helvetica', 8),
+    relief='groove',
+)
+frame_method.grid(row=3, column=0, columnspan=2, sticky='nsew')
+
+vkl = []
+"""Controls to be switched on/off."""
 
 # ↓ X-size control
-info01 = Label(frame_top, text='X:', font=('helvetica', 11), state='disabled')
-info01.grid(row=0, column=col)
-col += 1
+info01 = Label(frame_size, text='X:', font=('helvetica', 11), state='disabled')
+info01.grid(row=0, column=0)
+vkl.append(info01)
 
 ini_x = IntVar(value=2)
 in01 = Entry(
-    frame_top,
+    frame_size,
     textvariable=ini_x,
     state='disabled',
     width=5,
@@ -721,23 +736,23 @@ in01 = Entry(
     validate='key',
     validatecommand=(validate_entry, '%P'),
 )
-in01.grid(row=0, column=col)
-col += 1
+in01.grid(row=0, column=1)
+vkl.append(in01)
 
 # ↓ bind x and y effects
 ini_square = BooleanVar(value=True)
-check01 = Checkbutton(frame_top, variable=ini_square, onvalue=True, offvalue=False, indicatoron=0, text='✕', font=('courier', 8), state='disabled', relief=butt['relief'], borderwidth=1, command=syncXY)
-check01.grid(row=0, column=col, padx=(4, 2))
-col += 1
+check01 = Checkbutton(frame_size, variable=ini_square, onvalue=True, offvalue=False, indicatoron=0, text='✕', font=('courier', 8), state='disabled', relief=butt['relief'], borderwidth=1, command=syncXY)
+check01.grid(row=0, column=2, padx=(4, 2))
+vkl.append(check01)
 
 # ↓ Y-size control
-info02 = Label(frame_top, text='Y:', font=('helvetica', 11), state='disabled')
-info02.grid(row=0, column=col)
-col += 1
+info02 = Label(frame_size, text='Y:', font=('helvetica', 11), state='disabled')
+info02.grid(row=0, column=3)
+vkl.append(info02)
 
 ini_y = IntVar(value=2)
 in02 = Entry(
-    frame_top,
+    frame_size,
     textvariable=ini_y,
     state='disabled',
     width=5,
@@ -747,22 +762,22 @@ in02 = Entry(
     validate='key',
     validatecommand=(validate_entry, '%P'),
 )
-in02.grid(row=0, column=col)
-col += 1
+in02.grid(row=0, column=4)
+vkl.append(in02)
 
 ini_x.trace_add('write', lambda *args: syncXY())
 ini_y.trace_add('write', lambda *args: syncYX())
 
 method_str = StringVar(value='Bilinear')
 method_menu = OptionMenu(
-    frame_top,
+    frame_method,
     method_str,
     *['Bilinear', 'Barycentric'],
 )
-method_menu.grid(row=0, column=col)
-col += 1
+method_menu.grid(row=0, column=0)
 method_menu.configure(indicatoron=True, font=('helvetica', 12), width=10, anchor='e', relief=butt['relief'], activebackground=butt['activebackground'], state='disabled')
 method_menu['menu'].configure(font=method_menu['font'])
+vkl.append(method_menu)
 
 # ↓ Filter start
 butt_filter = Button(
@@ -780,7 +795,8 @@ butt_filter = Button(
     state='disabled',
     command=RunFilter,
 )
-butt_filter.grid(row=0, column=col, sticky='nsew', padx=(10, 0), pady=0)
+butt_filter.grid(row=0, column=1, sticky='nsew', padx=(10, 0), pady=0)
+vkl.append(butt_filter)
 
 """ ┌──────────────────────────────┐
     │ Center frame (image preview) │
@@ -876,8 +892,8 @@ whoever.minsize(whoever.winfo_reqwidth(), whoever.winfo_reqheight())
 # ↓ Setting maxsize to fit 90% of screen
 sortir.maxsize(9 * sortir.winfo_screenwidth() // 10, 9 * sortir.winfo_screenheight() // 10)
 # ↓ Align windows and center window group horizontally, +64 vertically
-sortir.geometry(f'+{(sortir.winfo_screenwidth() - sortir.winfo_width() - whoever.winfo_width() + 64) // 2}+64')
+sortir.geometry(f'+{(sortir.winfo_screenwidth() - sortir.winfo_width() - whoever.winfo_width()) // 2}+64')
 sortir.update()
-whoever.geometry(f'+{sortir.winfo_rootx() + sortir.winfo_reqwidth() - 64}+{sortir.winfo_rooty() + 32}')
+whoever.geometry(f'+{sortir.winfo_rootx() + sortir.winfo_reqwidth() + 4}+{sortir.winfo_y()}')
 
 sortir.mainloop()
