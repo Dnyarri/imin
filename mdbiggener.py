@@ -27,7 +27,7 @@ __author__ = 'Ilya Razmanov'
 __copyright__ = '(c) 2025-2026 Ilya Razmanov'
 __credits__ = 'Ilya Razmanov'
 __license__ = 'unlicense'
-__version__ = '26.10.31.11'
+__version__ = '26.10.31.19'
 __maintainer__ = 'Ilya Razmanov'
 __email__ = 'ilyarazmanov@gmail.com'
 __status__ = 'Development'
@@ -665,12 +665,14 @@ info_string.pack(side='bottom', padx=0, pady=(2, 0), fill='both')
     └─────────────────────-┘ """
 frame_top = Frame(whoever, borderwidth=2, relief='groove')
 frame_top.pack(side='top', anchor='w', pady=(0, 2))
+frame_top.columnconfigure(index=0, weight=50)
+frame_top.columnconfigure(index=1, weight=50)
 
 # ↓ File menubutton
 butt_file = Menubutton(
     frame_top,
     text='File...',
-    width=8,
+    # width=8,
     anchor='w',
     font=butt['font'],
     cursor=butt['cursor'],
@@ -681,8 +683,9 @@ butt_file = Menubutton(
     state='normal',
     indicatoron=False,
 )
-butt_file.grid(row=0, column=0, sticky='nsew', padx=(0, 6), pady=0)
+butt_file.grid(row=0, column=0, sticky='nsew', padx=(0, 2))
 
+# ↓ "File..." menu
 menu02 = Menu(butt_file, tearoff=False)  # "File" menu
 menu02.add_command(label='Open...', state='normal', command=GetSource, accelerator='Ctrl+O')
 menu02.add_separator()
@@ -706,7 +709,12 @@ frame_size = LabelFrame(
     font=('helvetica', 8),
     relief='groove',
 )
-frame_size.grid(row=1, column=0, columnspan=2, sticky='nsew')
+frame_size.grid(row=1, columnspan=2, sticky='nsew')
+frame_size.columnconfigure(index=0, weight=10)
+frame_size.columnconfigure(index=1, weight=100)
+frame_size.columnconfigure(index=2, weight=10)
+frame_size.columnconfigure(index=3, weight=10)
+frame_size.columnconfigure(index=4, weight=100)
 
 frame_method = LabelFrame(
     frame_top,
@@ -714,7 +722,7 @@ frame_method = LabelFrame(
     font=('helvetica', 8),
     relief='groove',
 )
-frame_method.grid(row=3, column=0, columnspan=2, sticky='nsew')
+frame_method.grid(row=2, columnspan=2, sticky='nsew')
 
 vkl = []
 """Controls to be switched on/off."""
@@ -736,13 +744,13 @@ in01 = Entry(
     validate='key',
     validatecommand=(validate_entry, '%P'),
 )
-in01.grid(row=0, column=1)
+in01.grid(row=0, column=1, sticky='we')
 vkl.append(in01)
 
 # ↓ bind x and y effects
 ini_square = BooleanVar(value=True)
 check01 = Checkbutton(frame_size, variable=ini_square, onvalue=True, offvalue=False, indicatoron=0, text='✕', font=('courier', 8), state='disabled', relief=butt['relief'], borderwidth=1, command=syncXY)
-check01.grid(row=0, column=2, padx=(4, 2))
+check01.grid(row=0, column=2, padx=8, sticky='we')
 vkl.append(check01)
 
 # ↓ Y-size control
@@ -762,7 +770,7 @@ in02 = Entry(
     validate='key',
     validatecommand=(validate_entry, '%P'),
 )
-in02.grid(row=0, column=4)
+in02.grid(row=0, column=4, sticky='we')
 vkl.append(in02)
 
 ini_x.trace_add('write', lambda *args: syncXY())
@@ -772,18 +780,21 @@ method_str = StringVar(value='Bilinear')
 method_menu = OptionMenu(
     frame_method,
     method_str,
-    *['Bilinear', 'Barycentric'],
+    *[
+        'Bilinear',
+        'Barycentric',
+    ],
 )
-method_menu.grid(row=0, column=0)
-method_menu.configure(indicatoron=True, font=('helvetica', 12), width=10, anchor='e', relief=butt['relief'], activebackground=butt['activebackground'], state='disabled')
-method_menu['menu'].configure(font=method_menu['font'])
+method_menu.grid(columnspan=2, sticky='nsew')
+method_menu.config(indicatoron=True, font=('helvetica', 12), width=16, anchor='e', relief=butt['relief'], activebackground=butt['activebackground'], state='disabled')
+method_menu['menu'].config(font=method_menu['font'])
 vkl.append(method_menu)
 
 # ↓ Filter start
 butt_filter = Button(
     frame_top,
     text='Run',
-    width=8,
+    # width=8,
     anchor='center',
     font=butt['font'],
     cursor='arrow',
@@ -795,7 +806,7 @@ butt_filter = Button(
     state='disabled',
     command=RunFilter,
 )
-butt_filter.grid(row=0, column=1, sticky='nsew', padx=(10, 0), pady=0)
+butt_filter.grid(row=0, column=1, sticky='nsew', padx=(2, 0))
 vkl.append(butt_filter)
 
 """ ┌──────────────────────────────┐

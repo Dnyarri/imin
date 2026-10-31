@@ -27,7 +27,7 @@ __author__ = 'Ilya Razmanov'
 __copyright__ = '(c) 2026 Ilya Razmanov'
 __credits__ = 'Ilya Razmanov'
 __license__ = 'unlicense'
-__version__ = '26.10.31.11'
+__version__ = '26.10.31.19'
 __maintainer__ = 'Ilya Razmanov'
 __email__ = 'ilyarazmanov@gmail.com'
 __status__ = 'Development'
@@ -724,7 +724,7 @@ zoom_factor = 0
 view_src = True
 is_filtered = False
 timing = None
-product_name = 'Distorter'  # 🌊 ⌇
+product_name = 'Dist◇rter'  # ◇ 🌊 ⌇ ▱ ▰
 minizoom, maxizoom = (-4, 9)  # Zoom from 1:5 to 10:1
 
 sortir = Tk()
@@ -772,12 +772,14 @@ info_string.pack(side='bottom', padx=0, pady=(2, 0), fill='both')
     └─────────────────────-┘ """
 frame_top = Frame(whoever, borderwidth=2, relief='groove')
 frame_top.pack(side='top', anchor='w', pady=(0, 2))
+frame_top.columnconfigure(index=0, weight=50)
+frame_top.columnconfigure(index=1, weight=50)
 
 # ↓ File menubutton
 butt_file = Menubutton(
     frame_top,
     text='File...',
-    width=8,
+    # width=8,
     anchor='w',
     font=butt['font'],
     cursor=butt['cursor'],
@@ -788,10 +790,10 @@ butt_file = Menubutton(
     state='normal',
     indicatoron=False,
 )
-butt_file.grid(row=0, column=0, sticky='nsew', padx=(0, 6), pady=0)
+butt_file.grid(row=0, column=0, sticky='nsew', padx=(0, 2))
 
 # ↓ "File..." menu
-menu02 = Menu(butt_file, tearoff=False)  # "File" menu
+menu02 = Menu(butt_file, tearoff=False)
 menu02.add_command(label='Open...', state='normal', command=GetSource, accelerator='Ctrl+O')
 menu02.add_separator()
 menu02.add_command(label='Save', state='disabled', command=Save, accelerator='Ctrl+S')
@@ -815,6 +817,10 @@ frame_size = LabelFrame(
     relief='groove',
 )
 frame_size.grid(row=1, column=0, columnspan=2, sticky='nsew')
+frame_size.columnconfigure(index=0, weight=10)
+frame_size.columnconfigure(index=1, weight=100)
+frame_size.columnconfigure(index=2, weight=10)
+frame_size.columnconfigure(index=3, weight=100)
 
 frame_shape = LabelFrame(
     frame_top,
@@ -860,7 +866,7 @@ vkl.append(method_menu)
 
 # ↓ X-input
 info01 = Label(frame_size, text='X:', font=('helvetica', 11), state='disabled')
-info01.grid(row=0, column=0)
+info01.grid(row=0, column=0, sticky='w')
 vkl.append(info01)
 
 ini_x = DoubleVar(value=0.0)
@@ -877,12 +883,12 @@ in01 = Spinbox(
     validate='key',
     validatecommand=(validate_entry, '%P'),
 )
-in01.grid(row=0, column=1)
+in01.grid(row=0, column=1, sticky='we')
 vkl.append(in01)
 
 # ↓ Y-input
 info02 = Label(frame_size, text='Y:', font=('helvetica', 11), state='disabled')
-info02.grid(row=0, column=2, padx=(16, 0), sticky='e')
+info02.grid(row=0, column=2, sticky='w')
 vkl.append(info02)
 
 ini_y = DoubleVar(value=0.0)
@@ -899,7 +905,7 @@ in02 = Spinbox(
     validate='key',
     validatecommand=(validate_entry, '%P'),
 )
-in02.grid(row=0, column=3, sticky='e')
+in02.grid(row=0, column=3, sticky='we')
 vkl.append(in02)
 
 # ↓ Edge mode
@@ -939,7 +945,7 @@ vkl.append(function_menu)
 butt_filter = Button(
     frame_top,
     text='Run',
-    width=8,
+    # width=8,
     anchor='center',
     font=butt['font'],
     cursor='arrow',
@@ -951,7 +957,7 @@ butt_filter = Button(
     state='disabled',
     command=RunFilter,
 )
-butt_filter.grid(row=0, column=1, sticky='nsew', padx=(6, 0), pady=0)
+butt_filter.grid(row=0, column=1, sticky='nsew', padx=(2, 0))
 vkl.append(butt_filter)
 
 """ ┌──────────────────────────────┐

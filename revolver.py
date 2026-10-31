@@ -27,7 +27,7 @@ __author__ = 'Ilya Razmanov'
 __copyright__ = '(c) 2025-2026 Ilya Razmanov'
 __credits__ = 'Ilya Razmanov'
 __license__ = 'unlicense'
-__version__ = '26.10.31.11'
+__version__ = '26.10.31.19'
 __maintainer__ = 'Ilya Razmanov'
 __email__ = 'ilyarazmanov@gmail.com'
 __status__ = 'Development'
@@ -323,9 +323,9 @@ def RunFilter(event=None) -> None:
     elif method_str.get() == 'Barycentric':
         method = 'barycentric'
 
-    if edge_str.get() == 'Repeat':
+    if edge_str.get() == 'Repeat edge':
         edge = 'repeat'
-    elif edge_str.get() == 'Wrap':
+    elif edge_str.get() == 'Wrap around':
         edge = 'wrap'
     else:
         edge = 0
@@ -599,7 +599,7 @@ zoom_factor = 0
 view_src = True
 is_filtered = False
 timing = None
-product_name = 'Rev⥀lver'  # ↺
+product_name = 'Rev⥀lver'  # ⥀ ↺ ⟲ ↺ ⭯
 minizoom, maxizoom = (-4, 9)  # Zoom from 1:5 to 10:1
 
 sortir = Tk()
@@ -647,12 +647,14 @@ info_string.pack(side='bottom', padx=0, pady=(2, 0), fill='both')
     └─────────────────────-┘ """
 frame_top = Frame(whoever, borderwidth=2, relief='groove')
 frame_top.pack(side='top', anchor='w', pady=(0, 2))
+frame_top.columnconfigure(index=0, weight=50)
+frame_top.columnconfigure(index=1, weight=50)
 
 # ↓ File menubutton
 butt_file = Menubutton(
     frame_top,
     text='File...',
-    width=8,
+    # width=8,
     anchor='w',
     font=butt['font'],
     cursor=butt['cursor'],
@@ -663,7 +665,7 @@ butt_file = Menubutton(
     state='normal',
     indicatoron=False,
 )
-butt_file.grid(row=0, column=0, sticky='nsew', padx=(0, 6), pady=0)
+butt_file.grid(row=0, column=0, sticky='nsew', padx=(0, 2))
 
 # ↓ "File..." menu
 menu02 = Menu(butt_file, tearoff=False)
@@ -690,6 +692,8 @@ frame_size = LabelFrame(
     relief='groove',
 )
 frame_size.grid(row=1, column=0, columnspan=2, sticky='nsew')
+frame_size.columnconfigure(index=0, weight=10)
+frame_size.columnconfigure(index=1, weight=100)
 
 frame_method = LabelFrame(
     frame_top,
@@ -710,6 +714,11 @@ frame_edge.grid(row=4, column=0, columnspan=2, sticky='nsew')
 vkl = []
 """Controls to be switched on/off."""
 
+# ↓ Angle label
+info01 = Label(frame_size, text='⭯°', font=('helvetica', 11), state='disabled')
+info01.grid(row=0, column=0, sticky='e', padx=(32, 2))
+vkl.append(info01)
+
 # ↓ Angle value
 ini_x = DoubleVar(value=0.0)
 in01 = Spinbox(
@@ -720,14 +729,14 @@ in01 = Spinbox(
     textvariable=ini_x,
     format='%2.1f',
     state='disabled',
-    width=4,
+    width=6,
     font=('helvetica', 11),
     foreground=butt['foreground'],
     background='white',
     validate='key',
     validatecommand=(validate_entry, '%S'),
 )
-in01.grid(row=0, column=0)
+in01.grid(row=0, column=1, sticky='we')
 vkl.append(in01)
 
 # ↓ Interpolation method
@@ -740,32 +749,32 @@ method_menu = OptionMenu(
         'Barycentric',
     ],
 )
-method_menu.grid(row=0, column=0)
-method_menu.configure(indicatoron=True, font=('helvetica', 12), width=9, anchor='e', relief=butt['relief'], activebackground=butt['activebackground'], state='disabled')
-method_menu['menu'].configure(font=method_menu['font'])
+method_menu.grid(row=0, column=0, sticky='e')
+method_menu.config(indicatoron=True, font=('helvetica', 12), width=16, anchor='e', relief=butt['relief'], activebackground=butt['activebackground'], state='disabled')
+method_menu['menu'].config(font=method_menu['font'])
 vkl.append(method_menu)
 
 # ↓ Edge mode
-edge_str = StringVar(value='Zero')
+edge_str = StringVar(value='Zero fill')
 edge_menu = OptionMenu(
     frame_edge,
     edge_str,
     *[
-        'Zero',
-        'Repeat',
-        'Wrap',
+        'Zero fill',
+        'Repeat edge',
+        'Wrap around',
     ],
 )
 edge_menu.grid(row=0, column=0)
-edge_menu.configure(indicatoron=True, font=('helvetica', 12), width=9, anchor='e', relief=butt['relief'], activebackground=butt['activebackground'], state='disabled')
-edge_menu['menu'].configure(font=edge_menu['font'])
+edge_menu.config(indicatoron=True, font=('helvetica', 12), width=16, anchor='e', relief=butt['relief'], activebackground=butt['activebackground'], state='disabled')
+edge_menu['menu'].config(font=edge_menu['font'])
 vkl.append(edge_menu)
 
 # ↓ Filter start
 butt_filter = Button(
     frame_top,
     text='Run',
-    width=8,
+    # width=8,
     anchor='center',
     font=butt['font'],
     cursor='arrow',
@@ -777,7 +786,7 @@ butt_filter = Button(
     state='disabled',
     command=RunFilter,
 )
-butt_filter.grid(row=0, column=1, rowspan=2, sticky='n', padx=(10, 0), pady=0)
+butt_filter.grid(row=0, column=1, sticky='nsew', padx=(2, 0))
 vkl.append(butt_filter)
 
 """ ┌──────────────────────────────┐
