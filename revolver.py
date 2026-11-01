@@ -27,7 +27,7 @@ __author__ = 'Ilya Razmanov'
 __copyright__ = '(c) 2025-2026 Ilya Razmanov'
 __credits__ = 'Ilya Razmanov'
 __license__ = 'unlicense'
-__version__ = '26.10.31.19'
+__version__ = '26.11.1.1'
 __maintainer__ = 'Ilya Razmanov'
 __email__ = 'ilyarazmanov@gmail.com'
 __status__ = 'Development'
@@ -59,7 +59,7 @@ def DisMiss(event=None) -> None:
 def ShowMenu(event) -> None:
     """Pop menu up (or sort of drop it down)."""
 
-    menu02.post(event.x_root, event.y_root)
+    menu_file.post(event.x_root, event.y_root)
 
 
 def ShowInfo(event=None) -> None:
@@ -270,13 +270,15 @@ def GetSource(event=None) -> None:
     sortir.bind('<MouseWheel>', zoomWheel)  # Wheel scroll
     sortir.bind('<Control-i>', ShowInfo)
     sortir.bind('<Return>', RunFilter)
+    for control in transparent_controls:
+        control.bind('<Return>', RunFilter)
     # ↓ ↓ Spinbox mouse input
     in01.unbind('<MouseWheel>')
     in01.bind('<MouseWheel>', incWheel)
     # ↓ Info in menu
-    menu02.entryconfig('Image Info...', state='normal')
+    menu_file.entryconfig('Image Info...', state='normal')
     # ↓ Enabling 'Save as...'
-    menu02.entryconfig('Save as...', state='normal')
+    menu_file.entryconfig('Save as...', state='normal')
     sortir.bind_all('<Control-Shift-S>', SaveAs)
     # ↓ Enabling zoom buttons
     butt_plus.config(state='normal', cursor='hand2')
@@ -373,7 +375,7 @@ def RunFilter(event=None) -> None:
     view_src = False
 
     # ↓ enabling save
-    menu02.entryconfig('Save', state='normal')
+    menu_file.entryconfig('Save', state='normal')
     # ↓ binding global
     sortir.bind_all('<Control-s>', Save)
     # ↓ binding source/result switch
@@ -477,7 +479,7 @@ def onSave() -> None:
     X, Y = (XNEW, YNEW)
 
     # ↓ disabling save
-    menu02.entryconfig('Save', state='disabled')
+    menu_file.entryconfig('Save', state='disabled')
     sortir.unbind_all('<Control-s>')
     # ↓ binding switch on preview click
     zanyato.unbind('<Button-1>')  # left click
@@ -589,10 +591,9 @@ def incWheel(event) -> None:
             ini_x.set(ini_x.get() + 1)
 
 
-""" ╔═══════════╗
-    ║ Main body ║
-    ╚═══════════╝ """
-# ↓ Initializing
+""" ╒══════════════╕
+    │ Initializing │
+    ╰──────────────╯ """
 sourcefilename = ''
 X = Y = Z = 0
 zoom_factor = 0
@@ -602,18 +603,22 @@ timing = None
 product_name = 'Rev⥀lver'  # ⥀ ↺ ⟲ ↺ ⭯
 minizoom, maxizoom = (-4, 9)  # Zoom from 1:5 to 10:1
 
-sortir = Tk()
-sortir.iconphoto(True, PhotoImage(data='P6\n3 3\n255\n'.encode(encoding='ascii') + randbytes(3 * 3 * 3)))
-sortir.title(f'{product_name} | VidWindow')
-
-validate_entry = sortir.register(valiDig)
-
-whoever = Toplevel(sortir)
-whoever.title(f'{product_name} {__version__} | Controls')
-whoever.transient(sortir)  # make control panel always on top
-whoever.protocol('WM_DELETE_WINDOW', lambda: None)  # block any attempt to close control panel
-sortir.protocol('WM_DELETE_WINDOW', DisMiss)  # just to be temporarily explicit
-
+""" ╒═ Dictionaries ═════════════╕
+    │ Bindings, properties, etc. │
+    ╰────────────────────────────╯ """
+# ↓ Most common bindings dictionaries
+bind_all = {
+    '<Button-3>': ShowMenu,
+    '<Alt-f>': ShowMenu,
+    '<Alt-F>': ShowMenu,
+    '<Control-o>': GetSource,
+    '<Control-O>': GetSource,
+    '<Control-q>': DisMiss,
+    '<Control-Q>': DisMiss,
+    '<Control-w>': DisMiss,
+    '<Control-W>': DisMiss,
+}
+"""Main window bindings before image open, ``event: function`` pairs."""
 # ↓ Buttons dictionaries
 butt = {
     'font': ('helvetica', 12),
@@ -626,11 +631,32 @@ butt = {
     'activeforeground': 'dark blue',
     'activebackground': '#E5F1FB',
 }
+"""Buttons properties dictionary, keys are ``font``, ``cursor``, ``border``,
+    ``relief``, ``overrelief``, ``foreground``, ``background``,
+    ``activeforeground``, ``activebackground``."""
 
 # ↓ Info statuses dictionaries
 info_normal = {'txt': f'{product_name} {__version__}', 'fg': 'grey', 'bg': 'grey90'}
 info_busy = {'txt': 'BUSY, PLEASE WAIT', 'fg': 'red', 'bg': 'yellow'}
 color_mode_str = ' '
+
+""" ╔═══════════╗
+    ║ Main body ║
+    ╚═══════════╝ """
+sortir = Tk()
+"""Main dialog window, containing ``frame_preview`` Frame."""
+sortir.iconphoto(True, PhotoImage(data='P6\n3 3\n255\n'.encode(encoding='ascii') + randbytes(3 * 3 * 3)))
+sortir.title(f'{product_name} | VidWindow')
+validate_entry = sortir.register(valiDig)
+"""Name of ``validatecommand`` option for entries and spinboxes."""
+
+whoever = Toplevel(sortir)
+"""Whoever controls Dune."""
+whoever.title(f'{product_name} {__version__} | Controls')
+whoever.transient(sortir)  # make control panel always on top
+whoever.protocol('WM_DELETE_WINDOW', lambda: None)  # block any attempt to close control panel
+sortir.protocol('WM_DELETE_WINDOW', DisMiss)  # just to be temporarily explicit
+
 # ↓ Info string
 info_string = Label(
     sortir,
@@ -640,13 +666,15 @@ info_string = Label(
     background=info_normal['bg'],
     relief='groove',
 )
+"""Info text label below main image, regularly updated."""
 info_string.pack(side='bottom', padx=0, pady=(2, 0), fill='both')
 
 """ ┌──────────────────────┐
     │ Top frame (controls) │
     └─────────────────────-┘ """
 frame_top = Frame(whoever, borderwidth=2, relief='groove')
-frame_top.pack(side='top', anchor='w', pady=(0, 2))
+"""Frame containing controls."""
+frame_top.pack(side='top', anchor='w')
 frame_top.columnconfigure(index=0, weight=50)
 frame_top.columnconfigure(index=1, weight=50)
 
@@ -665,33 +693,35 @@ butt_file = Menubutton(
     state='normal',
     indicatoron=False,
 )
+"""File menu button."""
 butt_file.grid(row=0, column=0, sticky='nsew', padx=(0, 2))
 
-# ↓ "File..." menu
-menu02 = Menu(butt_file, tearoff=False)
-menu02.add_command(label='Open...', state='normal', command=GetSource, accelerator='Ctrl+O')
-menu02.add_separator()
-menu02.add_command(label='Save', state='disabled', command=Save, accelerator='Ctrl+S')
-menu02.add_command(label='Save as...', state='disabled', command=SaveAs, accelerator='Ctrl+Shift+S')
-menu02.add_separator()
-menu02.add_command(label='Image Info...', accelerator='Ctrl+I', state='disabled', command=ShowInfo)
-menu02.add_separator()
-menu02.add_command(label='Exit', state='normal', command=DisMiss, accelerator='Ctrl+Q')
+menu_file = Menu(butt_file, tearoff=False)
+"""File menu."""
+menu_file.add_command(label='Open...', state='normal', command=GetSource, accelerator='Ctrl+O')
+menu_file.add_separator()
+menu_file.add_command(label='Save', state='disabled', command=Save, accelerator='Ctrl+S')
+menu_file.add_command(label='Save as...', state='disabled', command=SaveAs, accelerator='Ctrl+Shift+S')
+menu_file.add_separator()
+menu_file.add_command(label='Image Info...', accelerator='Ctrl+I', state='disabled', command=ShowInfo)
+menu_file.add_separator()
+menu_file.add_command(label='Exit', state='normal', command=DisMiss, accelerator='Ctrl+Q')
 
-butt_file['menu'] = menu02
+butt_file['menu'] = menu_file  # Attach menu to menu button
 
 butt_file.focus_set()  # Setting focus to "File..."
 
-""" ┌──────────────────────┐
-    │ Sub-frame (controls) │
-    └─────────────────────-┘ """
+""" ┌───────────────────────┐
+    │ Sub-frames (controls) │
+    └──────────────────────-┘ """
 frame_size = LabelFrame(
     frame_top,
     text='Angle',
     font=('helvetica', 8),
     relief='groove',
 )
-frame_size.grid(row=1, column=0, columnspan=2, sticky='nsew')
+"""Frame for angle input."""
+frame_size.grid(row=1, column=0, columnspan=2, sticky='nsew', pady=12)
 frame_size.columnconfigure(index=0, weight=10)
 frame_size.columnconfigure(index=1, weight=100)
 
@@ -701,6 +731,7 @@ frame_method = LabelFrame(
     font=('helvetica', 8),
     relief='groove',
 )
+"""Frame for interpolation choice."""
 frame_method.grid(row=3, column=0, columnspan=2, sticky='nsew')
 
 frame_edge = LabelFrame(
@@ -709,6 +740,7 @@ frame_edge = LabelFrame(
     font=('helvetica', 8),
     relief='groove',
 )
+"""Frame for edge extrapolation choice."""
 frame_edge.grid(row=4, column=0, columnspan=2, sticky='nsew')
 
 vkl = []
@@ -736,6 +768,7 @@ in01 = Spinbox(
     validate='key',
     validatecommand=(validate_entry, '%S'),
 )
+"""Rotation angle, degrees."""
 in01.grid(row=0, column=1, sticky='we')
 vkl.append(in01)
 
@@ -749,6 +782,7 @@ method_menu = OptionMenu(
         'Barycentric',
     ],
 )
+"""Interpolation method."""
 method_menu.grid(row=0, column=0, sticky='e')
 method_menu.config(indicatoron=True, font=('helvetica', 12), width=16, anchor='e', relief=butt['relief'], activebackground=butt['activebackground'], state='disabled')
 method_menu['menu'].config(font=method_menu['font'])
@@ -765,6 +799,7 @@ edge_menu = OptionMenu(
         'Wrap around',
     ],
 )
+"""Edge extrapolation method."""
 edge_menu.grid(row=0, column=0)
 edge_menu.config(indicatoron=True, font=('helvetica', 12), width=16, anchor='e', relief=butt['relief'], activebackground=butt['activebackground'], state='disabled')
 edge_menu['menu'].config(font=edge_menu['font'])
@@ -786,6 +821,7 @@ butt_filter = Button(
     state='disabled',
     command=RunFilter,
 )
+"""Process image button."""
 butt_filter.grid(row=0, column=1, sticky='nsew', padx=(2, 0))
 vkl.append(butt_filter)
 
@@ -798,6 +834,7 @@ frame_preview = LabelFrame(
     font=('helvetica', 8),
     relief='groove',
 )
+"""Frame containing main label (image preview) and zoom control subframe."""
 frame_preview.pack(side='top', anchor='center', expand=True)
 
 canvas = Canvas(
@@ -805,6 +842,7 @@ canvas = Canvas(
     borderwidth=1,
     highlightthickness=1,
 )
+"""Canvas containing preview."""
 canvas.pack()
 
 zanyato = Label(
@@ -818,6 +856,7 @@ zanyato = Label(
     background='grey90',
     relief='groove',
 )
+"""Main label containing canvas containing preview."""
 zanyato.pack(side='top')
 
 zanyato_ = canvas.create_window(
@@ -846,7 +885,8 @@ butt_minus.pack(side='right', padx=0, pady=0, fill='both')
 label_zoom = Label(frame_zoom, text='Zoom 1:1', font=('courier', 8), state='disabled')
 label_zoom.pack(side='left', anchor='n', padx=2, pady=0, fill='both')
 
-transparent_controls = (in01,)  # To be cut off global events
+transparent_controls = (in01,)
+"""Controls to be uncontrolled by global events."""
 
 """ ┌─────────────────────────────────────────────┐
     │ Binding everything that does not need image │
@@ -861,16 +901,10 @@ butt_file.bind('<Leave>', lambda event=None: butt_file.config(relief=butt['relie
 # ↓ Double-click image area to "Open..."
 zanyato.bind('<Double-Button-1>', GetSource)
 frame_preview.bind('<Double-Button-1>', GetSource)
+
 # ↓ Whole sortir binding menu, "Open..." and "Exit"
-sortir.bind_all('<Button-3>', ShowMenu)  # Popup menu
-sortir.bind_all('<Alt-f>', ShowMenu)
-sortir.bind_all('<Alt-F>', ShowMenu)
-sortir.bind_all('<Control-o>', GetSource)
-sortir.bind_all('<Control-O>', GetSource)
-sortir.bind_all('<Control-q>', DisMiss)
-sortir.bind_all('<Control-Q>', DisMiss)
-sortir.bind_all('<Control-w>', DisMiss)
-sortir.bind_all('<Control-W>', DisMiss)
+for happens, function in bind_all.items():
+    sortir.bind_all(happens, function)
 
 # ↓ Make Tkinter build GUI to make it calculate requested sizes.
 sortir.update()
