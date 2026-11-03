@@ -54,8 +54,8 @@ Shell programs GUI provides whole set of interpolation options; however, they do
 
 | Fig. 1. *Image displacement in "wrap around" mode, using barycentric image interpolation* |
 | :---: |
-| [![Distorter GUI](https://dnyarri.github.io/imin/anigui.png "Displacer in action, barycentric image interpolation in wrap around mode")](https://dnyarri.github.io/imin.html) |
-| *Sample program "Dist⧣rter", performing arbitrary image displacement in "wrap around" mode, using barycentric image interpolation.* |
+| [![Distorter GUI](https://dnyarri.github.io/imin/distorter.webp "Displacer in action, barycentric image interpolation in wrap around mode")](https://dnyarri.github.io/imin.html) |
+| *Sample program "Dist◇rter", performing arbitrary image displacement in "wrap around" mode, using barycentric image interpolation.* |
 
 ## Prerequisite and Dependencies
 
