@@ -46,7 +46,7 @@ __author__ = 'Ilya Razmanov'
 __copyright__ = '(c) 2023-2026 Ilya Razmanov'
 __credits__ = 'Ilya Razmanov'
 __license__ = 'unlicense'
-__version__ = '26.8.26.18'
+__version__ = '26.11.3.3'
 __maintainer__ = 'Ilya Razmanov'
 __email__ = 'ilyarazmanov@gmail.com'
 __status__ = 'Development'
@@ -56,7 +56,7 @@ from typing import Literal
 
 
 # ↓ Pixel reading, nearest neighbour interpolation, configurable edge modes
-def src(source_image: list[list[list[int]]], x: float, y: float, edge: int | str) -> list[int]:
+def src(source_image: list[list[list[int]]], x: float, y: float, edge: int | str, **size) -> list[int]:
     """Reading pixel(x, y) list from image nested list, nearest neighbour interpolation.
 
     :param source_image: source image 3D nested list,
@@ -71,13 +71,20 @@ def src(source_image: list[list[list[int]]], x: float, y: float, edge: int | str
         - ``edge=2`` or ``edge='wrap'``: wrap around;
         - ``edge=``other: extrapolate with zeroes.
           Alpha=0 correspond to transparent.
+    :param int X: image width, px. If none given, will be autodetected;
+    :param int Y: image height, px. If none given, will be autodetected;
+    :param int Z: image channel number. If none given, will be autodetected.
     :return: pixel(x, y) value.
     :rtype: list[int]
 
     """
 
     # ↓ Determining source image sizes.
-    Y, X, Z = (len(source_image), len(source_image[0]), len(source_image[0][0]))
+    X = size.get('X')
+    Y = size.get('Y')
+    Z = size.get('Z')
+    if X == None or Y == None or Z == None:
+        Y, X, Z = (len(source_image), len(source_image[0]), len(source_image[0][0]))
     Z_COLOR = Z if Z == 1 or Z == 3 else min(Z - 1, 3)  # Number of color channels, alpha excluded.
 
     if edge == 1 or edge == 'repeat':

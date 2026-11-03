@@ -45,13 +45,13 @@ __author__ = 'Ilya Razmanov'
 __copyright__ = '(c) 2024-2026 Ilya Razmanov'
 __credits__ = 'Ilya Razmanov'
 __license__ = 'unlicense'
-__version__ = '26.8.26.18'
+__version__ = '26.11.3.3'
 __maintainer__ = 'Ilya Razmanov'
 __email__ = 'ilyarazmanov@gmail.com'
 __status__ = 'Development'
 __all__ = ['rescale']
 
-from functools import lru_cache
+from concurrent.futures import ThreadPoolExecutor
 from operator import mul
 from typing import Literal
 
@@ -120,9 +120,6 @@ def bilinear(source_image: list[list[list[int]]], XNEW: int, YNEW: int, edge: in
     # ↓ Determining source image sizes.
     Y, X, Z = (len(source_image), len(source_image[0]), len(source_image[0][0]))
 
-    # ↓ Function was never FIR-optimized, but @lru_cache
-    #   for source rows reading partially compensate for this.
-    @lru_cache(maxsize=4)
     def _pixel_1(x: int, y: int, edge: int | str, X: int, Y: int, Z: int) -> list[int]:
         """Local version of _src(x, y) with hardcoded source list name, good for caching."""
         return _src(source_image, x, y, edge, X, Y, Z)
@@ -158,8 +155,6 @@ def bilinear(source_image: list[list[list[int]]], XNEW: int, YNEW: int, edge: in
     # ↓ Determining intermediate image sizes.
     Y2, X2, Z2 = (Y, XNEW, Z)
 
-    # ↓ Caching in y-direction works poorly since comprehension
-    #   works in x-direction, therefore no caching used.
     def _pixel_2(x: int, y: int, edge: int | str, X2: int, Y2: int, Z2: int) -> list[int]:
         """Local version of _src(x, y) with hardcoded source list name."""
         return _src(intermediate_image, x, y, edge, X=X2, Y=Y2, Z=Z2)
@@ -193,16 +188,25 @@ def bilinear(source_image: list[list[list[int]]], XNEW: int, YNEW: int, edge: in
     x_resize = (X - 1) / (XNEW - 1)
     y_resize = (Y - 1) / (YNEW - 1)
 
+    def _pass_1(y):
+        return [_xlin(x_resize * x, y, edge) for x in range(XNEW)]
+
+    def _pass_2(y):
+        return [_ylin(x, y_resize * y, edge) for x in range(XNEW)]
+
     # ↓ Two-pass rescaling
     if XNEW == X:  # if no rescaling occurs along X
         intermediate_image = source_image
     else:
-        intermediate_image = [[_xlin(x_resize * x, y, edge) for x in range(XNEW)] for y in range(Y)]
+        with ThreadPoolExecutor() as row_executor:
+            merge = row_executor.map(_pass_1, range(Y))
+        intermediate_image = list(merge)
 
     if YNEW == Y:  # if no rescaling occurs along Y
         return intermediate_image
-    result_image = [[_ylin(x, y_resize * y, edge) for x in range(XNEW)] for y in range(YNEW)]
-    # print(f'{_pixel_1.cache_info()=}')
+    with ThreadPoolExecutor() as row_executor:
+        merge = row_executor.map(_pass_2, range(YNEW))
+    result_image = list(merge)
 
     """
     # ↓ Single pass rescaling.
@@ -239,23 +243,9 @@ def barycentric(source_image: list[list[list[int]]], XNEW: int, YNEW: int, edge:
     Y, X, Z = (len(source_image), len(source_image[0]), len(source_image[0][0]))
     Z_COLOR = Z if Z == 1 or Z == 3 else min(Z - 1, 3)
 
-    # ↓ Function was never FIR-optimized, but @lru_cache
-    #   for source rows reading partially compensate for this.
-    #   Effects starts at @lru_cache(maxsize=4), and seem to stabilize after maxsize=8.
-    #   @lru_cache(maxsize=None) is a tiny yet statistically significant bit faster
-    #   but  raise concerns regarding cache size for large images.
-    #   On the Toad's behest and volution, maxsize was set
-    #   to 8 for images bigger than 256 * 256 px, and None otherwise.
-    cache_size = 8 if X * Y > 256 * 256 else None
-
-    # ↓ Classic lru_cache syntax
-    @lru_cache(maxsize=cache_size)
     def _pixel(x: int, y: int, edge: int | str, X: int, Y: int, Z: int) -> list[int]:
         """Local version of _src(x, y) with hardcoded source list name, good for caching."""
         return _src(source_image, x, y, edge, X, Y, Z)
-
-    # ↓ Alternative lru_cache syntax
-    # _pixel = lru_cache(maxsize=cache_size)(_pixel)
 
     def _baryc(x: float, y: float, edge: int | str, X: int, Y: int, Z: int) -> list[int]:
         """Local version of baryc(x, y) based on _pixel(x, y)."""
@@ -364,11 +354,13 @@ def barycentric(source_image: list[list[list[int]]], XNEW: int, YNEW: int, edge:
     x_resize = (X - 1) / (XNEW - 1)
     y_resize = (Y - 1) / (YNEW - 1)
 
-    # ↓ Singe pass rescaling
-    result_image = [[_baryc(x_resize * x, y_resize * y, edge, X, Y, Z) for x in range(XNEW)] for y in range(YNEW)]
+    def _row(y):
+        return [_baryc(x_resize * x, y_resize * y, edge, X, Y, Z) for x in range(XNEW)]
 
-    # ↓ Cache stats
-    # print(f'{_pixel.cache_info()=} {(_pixel.cache_info()[0] / _pixel.cache_info()[1])=}')
+    # ↓ Singe pass rescaling
+    with ThreadPoolExecutor() as row_executor:
+        merge = row_executor.map(_row, range(YNEW))
+    result_image = list(merge)
 
     """
     # ↓ Single pass rescaling.

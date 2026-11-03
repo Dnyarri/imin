@@ -47,13 +47,13 @@ __author__ = 'Ilya Razmanov'
 __copyright__ = '(c) 2024-2026 Ilya Razmanov'
 __credits__ = 'Ilya Razmanov'
 __license__ = 'unlicense'
-__version__ = '26.8.26.18'
+__version__ = '26.11.3.3'
 __maintainer__ = 'Ilya Razmanov'
 __email__ = 'ilyarazmanov@gmail.com'
 __status__ = 'Development'
 __all__ = ['displace']
 
-from functools import lru_cache
+from concurrent.futures import ThreadPoolExecutor
 from operator import mul
 from typing import Literal
 
@@ -123,12 +123,6 @@ def bilinear(source_image: list[list[list[int]]], fx: callable, fy: callable, XN
     # ↓ Determining source image sizes.
     Y, X, Z = (len(source_image), len(source_image[0]), len(source_image[0][0]))
 
-    # ↓ Function was never FIR-optimized, but @lru_cache
-    #   for source rows reading partially compensate for this.
-    #   Unfortunately, both optimal cache size and actual effect
-    #   on arbitrary displacement depend on exact displacement
-    #   and therefore are unpredictable.
-    @lru_cache
     def _pixel(x: int, y: int, edge: int | str, X: int, Y: int, Z: int) -> list[int]:
         """Local version of _src(x, y) with hardcoded source list name, good for caching."""
         return _src(source_image, x, y, edge, X, Y, Z)
@@ -164,9 +158,13 @@ def bilinear(source_image: list[list[list[int]]], fx: callable, fy: callable, XN
         pixelvalue = [*map(_intaddup_4, norm00, norm01, norm10, norm11)]
         return pixelvalue
 
+    def _row(y):
+        return [_blin(fx(x, y), fy(x, y), edge, X, Y, Z) for x in range(XNEW)]
+
     # ↓ Singe pass displacement
-    result_image = [[_blin(fx(x, y), fy(x, y), edge, X, Y, Z) for x in range(XNEW)] for y in range(YNEW)]
-    # print(_pixel.cache_info())
+    with ThreadPoolExecutor() as row_executor:
+        merge = row_executor.map(_row, range(YNEW))
+    result_image = list(merge)
 
     return result_image
 
@@ -200,12 +198,6 @@ def barycentric(source_image: list[list[list[int]]], fx: callable, fy: callable,
     Y, X, Z = (len(source_image), len(source_image[0]), len(source_image[0][0]))
     Z_COLOR = Z if Z == 1 or Z == 3 else min(Z - 1, 3)
 
-    # ↓ Function was never FIR-optimized, but @lru_cache
-    #   for source rows reading partially compensate for this.
-    #   Unfortunately, both optimal cache size and actual effect
-    #   on arbitrary displacement depend on exact displacement
-    #   and therefore are unpredictable.
-    @lru_cache
     def _pixel(x: int, y: int, edge: int | str, X: int, Y: int, Z: int) -> list[int]:
         """Local version of _src(x, y) with hardcoded source list name, good for caching."""
         return _src(source_image, x, y, edge, X, Y, Z)
@@ -313,9 +305,13 @@ def barycentric(source_image: list[list[list[int]]], fx: callable, fy: callable,
         pixelvalue = [*map(_intaddup_4, norm1, norm4, norm2, norm3)]
         return pixelvalue
 
+    def _row(y):
+        return [_baryc(fx(x, y), fy(x, y), edge, X, Y, Z) for x in range(XNEW)]
+
     # ↓ Singe pass displacement
-    result_image = [[_baryc(fx(x, y), fy(x, y), edge, X, Y, Z) for x in range(XNEW)] for y in range(YNEW)]
-    # print(_pixel.cache_info())
+    with ThreadPoolExecutor() as row_executor:
+        merge = row_executor.map(_row, range(YNEW))
+    result_image = list(merge)
 
     return result_image
 
