@@ -27,7 +27,7 @@ __author__ = 'Ilya Razmanov'
 __copyright__ = '(c) 2026 Ilya Razmanov'
 __credits__ = 'Ilya Razmanov'
 __license__ = 'unlicense'
-__version__ = '26.11.1.1'
+__version__ = '26.11.3.3'
 __maintainer__ = 'Ilya Razmanov'
 __email__ = 'ilyarazmanov@gmail.com'
 __status__ = 'Development'
@@ -331,7 +331,7 @@ def GetMap() -> tuple[callable, callable, int, int]:
 
     if edge_str.get() == 'Repeat':
         edge = 'repeat'
-    elif edge_str.get() == 'Wrap':
+    elif edge_str.get() == 'Wrap around':
         edge = 'wrap'
     else:
         edge = 0
