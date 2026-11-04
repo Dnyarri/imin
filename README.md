@@ -8,6 +8,8 @@ Currently **imin** repository contains code for barycentric and bilinear image i
 
 Barycentric image interpolation, the most interesting part of the module, works by dividing ⬛ pixel square onto either ◤◢ or ◣◥ subtriangles, and performing interpolation within a triangle using [barycentric coordinates](https://en.wikipedia.org/wiki/Barycentric_coordinate_system).
 
+## Functional branch
+
 This branch, **"Functional"**, specifically, contain **imin** module version to be used as functions, not classes, and several shell applications to show the module in action.
 
 ## Figures
@@ -48,7 +50,7 @@ Instructions for developers on module usage and function input syntax are given 
 - **`revolver.py`**: image rotation program. Based entirely on `displace.py`, and separated as specific program just because rotation GUI should take only one argument (i.e. angle), while displacement currently takes two (one for x and other for y). To avoid making a program with only half of GUI being functional, this particular example program was created.
 
 > [!NOTE]
-> Shell programs GUI is rather clumsy, yet provides some suitable features. For example, with mouse over numerical input fields you can use mouse wheel to gradually increment/decrement input values. Mouse over info string below image shows you last filter execution time (and Ctrl+Click on it places this value to clipboard. This was made to simplify speed tests during optimization).
+> Shell programs GUI may look rather clumsy, yet provides some suitable features. For example, with mouse over numerical input fields you can use mouse wheel to gradually increment/decrement input values. Mouse over info string below image shows you last filter execution time (and Ctrl+Click on it places this value to clipboard. This was made to simplify speed tests during optimization).
 
 Shell programs GUI provides whole set of interpolation options; however, they do not always work as one may expect. For example, "Wrap around" processing for seamless textures in "Distorter" works for wave deformation, but makes seams for skewing. This is caused by skewing nature: opposite image borders slide against each other, thus breaking seamless borders match. Please remember that these shell programs are made for module testing and illustration purposes, and not as a complete replacement for Photoshop or GIMP.
 
@@ -59,7 +61,7 @@ Shell programs GUI provides whole set of interpolation options; however, they do
 
 ## Prerequisite and Dependencies
 
-1. [Python](https://www.python.org/ "CPython") 3.11 or above.
+1. [Python](https://www.python.org/ "CPython") 3.11 or above. Note that during November 2026 module was rewritten to support multithreading, which provides dramatic speed increase when running under free-threaded (no GIL) Python; therefore using modern versions, like Python 3.14 and above, is **highly recommended**.
 2. [PyPNG](https://gitlab.com/drj11/pypng "Pure Python PNG format module"). Required for [PNG images reading and writing](https://drj11.gitlab.io/pypng "PyPNG docs"). Copy included into current **imin** distribution.
 3. [PyPNM](https://pypi.org/project/PyPNM/ "Pure Python PPM and PGM format module"). Required for [viewing image data, as well as PPM and PGM images reading and writing](https://dnyarri.github.io/pypnm.html "PyPNM provides viewing image data, as well as PPM and PGM images reading and writing"). Copy included into current **imin** distribution.
 4. Tkinter. Normally included into standard CPython distribution.
