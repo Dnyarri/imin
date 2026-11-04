@@ -37,7 +37,7 @@ from math import cos, radians, sin
 from pathlib import Path
 from random import randbytes  # Used for random icon only
 from time import ctime, time
-from tkinter import Button, Canvas, DoubleVar, Frame, Label, LabelFrame, Menu, Menubutton, OptionMenu, PhotoImage, Spinbox, StringVar, Tk, Toplevel
+from tkinter import Button, Canvas, DoubleVar, Frame, Label, LabelFrame, Menu, Menubutton, OptionMenu, PhotoImage, Spinbox, StringVar, TclError, Tk, Toplevel
 from tkinter.filedialog import askopenfilename, asksaveasfilename
 from tkinter.messagebox import showinfo
 
@@ -81,8 +81,8 @@ def UINormal() -> None:
         widget['state'] = 'normal'
         if widget.winfo_class() == 'Button':
             widget['cursor'] = 'hand2'
-    method_menu['state'] = 'normal'
-    edge_menu['state'] = 'normal'
+    method_menu['state'] = zanyato['state'] = edge_menu['state'] = 'normal'
+    whoever['cursor'] = sortir['cursor'] = zanyato['cursor'] = ''
     info_string.config(text=info_normal['txt'], foreground=info_normal['fg'], background=info_normal['bg'])
     sortir.update()
 
@@ -94,8 +94,11 @@ def UIBusy() -> None:
         widget['state'] = 'disabled'
         if widget.winfo_class() == 'Button':
             widget['cursor'] = 'arrow'
-    method_menu['state'] = 'disabled'
-    edge_menu['state'] = 'disabled'
+    method_menu['state'] = zanyato['state'] = edge_menu['state'] = 'disabled'
+    try:  # trying to be cross-platform, based on ``Python312\tcl\tk8.6\ttk\cursors.tcl``
+        whoever['cursor'] = sortir['cursor'] = zanyato['cursor'] = 'wait'
+    except TclError:
+        whoever['cursor'] = sortir['cursor'] = zanyato['cursor'] = 'watch'
     info_string.config(text=info_busy['txt'], foreground=info_busy['fg'], background=info_busy['bg'])
     sortir.update()
 
@@ -270,8 +273,7 @@ def GetSource(event=None) -> None:
     sortir.bind('<MouseWheel>', zoomWheel)  # Wheel scroll
     sortir.bind('<Control-i>', ShowInfo)
     sortir.bind('<Return>', RunFilter)
-    for control in transparent_controls:
-        control.bind('<Return>', RunFilter)
+    whoever.bind('<Return>', RunFilter)
     # ↓ ↓ Spinbox mouse input
     in01.unbind('<MouseWheel>')
     in01.bind('<MouseWheel>', incWheel)
