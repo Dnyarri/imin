@@ -4,6 +4,9 @@
 
 Currently **imin** repository contains code for barycentric and bilinear image interpolation.
 
+> [!WARNING]
+> The code is poorly documented, **utterly untested und highly dangerous**!
+
 [Bilinear image interpolation](https://en.wikipedia.org/wiki/Bilinear_interpolation) works by considering pixel as ⬛ square, and performing interpolation between four corners.
 
 Barycentric image interpolation, the most interesting part of the module, works by dividing ⬛ pixel square onto either ◤◢ or ◣◥ subtriangles, and performing interpolation within a triangle using [barycentric coordinates](https://en.wikipedia.org/wiki/Barycentric_coordinate_system).
