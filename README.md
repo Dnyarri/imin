@@ -2,10 +2,7 @@
 
 ## Overview
 
-Currently **imin** repository contains code for barycentric and bilinear image interpolation.
-
-> [!WARNING]
-> The code is poorly documented, **utterly untested und highly dangerous**!
+Currently **imin** repository contains code for barycentric and bilinear image interpolation, sparingly documented *und highly dangerous © Professor Professor*.
 
 [Bilinear image interpolation](https://en.wikipedia.org/wiki/Bilinear_interpolation) works by considering pixel as ⬛ square, and performing interpolation between four corners.
 
@@ -45,22 +42,26 @@ Instructions for developers on module usage and function input syntax are given 
 
 ### Shell applications
 
+- **`mdbiggener.py`**: image rescaler; provides a demo for `rescale.py`;
+
+  | Fig. 1. *Image rescaler with configurable interpolation* |
+  | :---: |
+  | [![Embiggener GUI](https://dnyarri.github.io/imin/embiggener.webp "Image rescaler with barycentric interpolation")](https://dnyarri.github.io/imin.html) |
+  | *Sample program "Em⇅Debiggener".* GUI is rather compact yet provides some suitable features. For example, with mouse over numerical input fields you can use mouse wheel to gradually increment/decrement input values. Mouse over info string below image shows you last filter execution time (and Ctrl+Click on it places this value to clipboard. This was made to simplify speed tests during optimization). |
+
 - **`distorter.py`**: the main part of demo. Distorter provides examples of using general purpose image displacer (`displace.py`) with various algorithmic displacement functions. Currently demo includes a few functions:
   - skewing (tangent based);
   - wavy distortion (sine based);
   - a couple of toothy distortions (modulo based).
-- **`mdbiggener.py`**: image rescaler; provides a demo for `rescale.py`;
+
+  | Fig. 2. *Image displacement in "wrap around" mode, using barycentric image interpolation* |
+  | :---: |
+  | [![Distorter GUI](https://dnyarri.github.io/imin/distorter.webp "Displacer in action, barycentric image interpolation in wrap around mode")](https://dnyarri.github.io/imin.html) |
+  | *Sample program "Dist◇rter", performing arbitrary image displacement in "wrap around" mode, using barycentric image interpolation.* |
+
 - **`revolver.py`**: image rotation program. Based entirely on `displace.py`, and separated as specific program just because rotation GUI should take only one argument (i.e. angle), while displacement currently takes two (one for x and other for y). To avoid making a program with only half of GUI being functional, this particular example program was created.
 
-> [!NOTE]
-> Shell programs GUI may look rather clumsy, yet provides some suitable features. For example, with mouse over numerical input fields you can use mouse wheel to gradually increment/decrement input values. Mouse over info string below image shows you last filter execution time (and Ctrl+Click on it places this value to clipboard. This was made to simplify speed tests during optimization).
-
 Shell programs GUI provides whole set of interpolation options; however, they do not always work as one may expect. For example, "Wrap around" processing for seamless textures in "Distorter" works for wave deformation, but makes seams for skewing. This is caused by skewing nature: opposite image borders slide against each other, thus breaking seamless borders match. Please remember that these shell programs are made for module testing and illustration purposes, and not as a complete replacement for Photoshop or GIMP.
-
-| Fig. 1. *Image displacement in "wrap around" mode, using barycentric image interpolation* |
-| :---: |
-| [![Distorter GUI](https://dnyarri.github.io/imin/distorter.webp "Displacer in action, barycentric image interpolation in wrap around mode")](https://dnyarri.github.io/imin.html) |
-| *Sample program "Dist◇rter", performing arbitrary image displacement in "wrap around" mode, using barycentric image interpolation.* |
 
 ## Prerequisite and Dependencies
 

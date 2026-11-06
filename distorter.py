@@ -27,7 +27,7 @@ __author__ = 'Ilya Razmanov'
 __copyright__ = '(c) 2026 Ilya Razmanov'
 __credits__ = 'Ilya Razmanov'
 __license__ = 'unlicense'
-__version__ = '26.11.3.3'
+__version__ = '26.11.6.11'
 __maintainer__ = 'Ilya Razmanov'
 __email__ = 'ilyarazmanov@gmail.com'
 __status__ = 'Development'
@@ -493,11 +493,7 @@ def RunFilter(event=None) -> None:
     menu_file.entryconfig('Save', state='normal')
     # ↓ binding global
     sortir.bind_all('<Control-s>', Save)
-    # ↓ binding source/result switch
-    #   (on click works silly with drag)
-    # zanyato.bind('<Button-1>', SwitchView)
-    # zanyato.bind('<ButtonRelease-1>', SwitchView)
-    zanyato.bind('<space>', SwitchView)  # # "Space" key. May be worth binding whole sortir?
+    sortir.bind_all('<space>', SwitchView)
     # ↓ Adding filename, mode and status to window title a-la Photoshop
     sortir.title(f'{Path(sourcefilename).name}{color_mode_str}{"*" if is_filtered else ""} | VidWindow')
     info_normal = {'txt': f'{Path(sourcefilename).name}{"*" if is_filtered else ""} X={XNEW if is_filtered else X} Y={YNEW if is_filtered else Y} Z={Z} maxcolors={maxcolors}', 'fg': 'grey', 'bg': 'grey90'}
@@ -1022,7 +1018,7 @@ canvas.pack()
 
 zanyato = Label(
     canvas,
-    text='Preview area.\n  Double click to open image,\n  Right click or Alt+F for a menu.\nWith image opened,\n  Ctrl+Click to zoom in,\n  Alt+Click to zoom out,\n  Enter to process image.\nWhen image processed,\n  Space to switch source/result.',
+    text='Preview area.\n  Double click to open image,\n  Right click or Alt+F for a menu.\nWith image opened,\n  Ctrl+Click to zoom in,\n  Alt+Click to zoom out,\n  Ctrl+1 to zoom 1:1,\n  Wheel to zoom in/out,\n  Enter to process image.\nWhen image processed,\n  Space to switch source/result.',
     font=('helvetica', 12),
     justify='left',
     padx=24,
