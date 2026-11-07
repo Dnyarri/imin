@@ -16,26 +16,26 @@ PyPNM module comprise a set of functions for dealing with
 Python nested lists, namely:
 
 - **``pnm2list``**: reading binary or ASCII
-RGB `PPM`_, or L `PGM`_, or ink on/off `PBM`_ file
-and returning image data as nested list of int.
+  RGB `PPM`_, or L `PGM`_, or ink on/off `PBM`_ file
+  and returning image data as nested list of int.
 
 - **``list2bin``**: getting image data as nested list of int and
-creating binary PPM (P6) or PGM (P5) data structure in memory.
+  creating binary PPM (P6) or PGM (P5) data structure in memory.
 
-    Suitable for generating data to display with Tkinter
-    ``PhotoImage(data=...)`` class.
+  Suitable for generating data to display with Tkinter
+  ``PhotoImage(data=...)`` class.
 
 - **``list2pnmbin``**: getting image data as nested list of int
-and writing binary PPM (P6) or PGM (P5) image file.
+  and writing binary PPM (P6) or PGM (P5) image file.
 
-    .. note:: Bytes generations procedure is different from that
-        used in ``list2bin``.
+  .. note:: Bytes generations procedure is different from that
+      used in ``list2bin``.
 
 - **``list2pnmascii``**: getting image data as nested list of int
-and writing ASCII PPM (P3) or PGM (P2) image file.
+  and writing ASCII PPM (P3) or PGM (P2) image file.
 
 - **``list2pnm``**: getting image data as nested list of int
-and writing either binary or ASCII PNM file depending on ``bin`` value.
+  and writing either binary or ASCII PNM file depending on ``bin`` value.
 
 - ``create_image``: creating empty nested 3D list for image representation.
 
@@ -44,13 +44,18 @@ Usage
 
 After ``from pypnm import pnmlpnm``, use something like::
 
-    X, Y, Z, maxcolors, list_3d = pnmlpnm.pnm2list(in_filename)
+    X, Y, Z, maxcolors, list_3d = pnmlpnm.pnm2list(in_filename, tuplevel)
 
 for reading data from PPM/PGM, where:
 
 - ``X``, ``Y``, ``Z``: image dimensions (int);
-- ``maxcolors``: maximum value of color per channel for current image (int);
-- ``list_3d``: image pixel data as list(list(list(int)));
+- ``maxcolors``: maximum value of colors per channel for current image (int);
+- ``list_3d``: image pixel data as list[list[list[int]]];
+- ``tuplevel``: image representation switch:
+
+  - ``tuplevel='pixel'``: ``list_3d`` is list[list[tuple[int]]];
+  - ``tuplevel='image'``: ``list_3d`` is tuple[tuple[tuple[int]]];
+  - ``tuplevel=`` other: ``list_3d`` is list[list[list[int]]].
 
 and::
 
@@ -69,7 +74,7 @@ resulting file will be binary or ASCII.
 
 .. note:: ``maxcolors`` is either 255 for 8 bit or 65535 for 16 bit images.
     1 bit ink on/off images get promoted and inverted to 8 bit L upon import,
-    i.e. PBM converted to PGM when reading (writing PBM is not planned).
+    i.e. PBM converted to PGM when reading. Writing PBM is not planned.
 
 References
 ----------
@@ -102,10 +107,10 @@ References
 """
 
 __author__ = 'Ilya Razmanov'
-__copyright__ = '(c) 2024-2025 Ilya Razmanov'
+__copyright__ = '(c) 2024-2026 Ilya Razmanov'
 __credits__ = 'Ilya Razmanov'
 __license__ = 'unlicense'
-__version__ = '2.23.23.23'
+__version__ = '2.33.3.312' # 3 Sep 2026
 __maintainer__ = 'Ilya Razmanov'
 __email__ = 'ilyarazmanov@gmail.com'
 __status__ = 'Production'
@@ -113,6 +118,7 @@ __status__ = 'Production'
 import array
 import mmap
 from re import search, sub
+from typing import Literal
 
 """ ╔══════════════════════════════╗
     ║           pnm2list           ║
@@ -122,28 +128,35 @@ from re import search, sub
     ╚══════════════════════════════╝ """
 
 
-def pnm2list(in_filename: str) -> tuple[int, int, int, int, list[list[list[int]]]]:
+def pnm2list(in_filename: str, tuplevel: Literal['none', 'pixel', 'image'] | None = None) -> tuple[int, int, int, int, list[list[list[int]]] | list[list[tuple[int]]] | tuple[tuple[tuple[int]]]]:
     """Read PBM, PGM or PPM file to nested image data list.
 
     :param str in_filename: input file name;
+    :param tuplevel: switch ``list_3d`` structure
+
+        - ``tuplevel='image'``: ``list_3d`` is tuple[tuple[tuple[int]]];
+        - ``tuplevel='pixel'``: ``list_3d`` is list[list[tuple[int]]];
+        - ``tuplevel=`` other: ``list_3d`` is list[list[list[int]]].
+
+    :type tuplevel: str or None
     :return X, Y, Z, maxcolors, list_3d: tuple, consisting of:
 
-    - ``X``, ``Y``, ``Z``: PNM image dimensions (int);
-    - ``maxcolors``: number of colors per channel for current image (int),
-    either 255, or 65535;
-    - ``list_3d``: list (image) of lists (rows) of lists (pixels)
-    of ints (channel values).
+        - **``X``**, **``Y``**, **``Z``**: PNM image dimensions (int);
+        - **``maxcolors``**: maximal color value per channel
+        for current image (int), either 255, or 65535;
+        - **``list_3d``**: list/tuple (image) of lists/tuples (rows) of
+        lists/tuples (pixels) of ints (channel values).
 
     """
 
-    """ ┌───────────────────────────┐
+    """ ╒═══════════════════════════╕
         │ IF Binary continuous tone │
-        └───────────────────────────┘ """
+        ╰───────────────────────────╯ """
 
-    def _p65(in_filename: str) -> tuple[int, int, int, int, list[list[list[int]]]]:
-        """Open P6 and P5 PNM"""
-        with open(in_filename, 'rb') as file:  # Open file for mmap
-            with mmap.mmap(file.fileno(), 0, access=mmap.ACCESS_READ) as full_bytes_mmap:
+    def _p65(in_filename: str, tuplevel=None) -> tuple[int, int, int, int, list[list[list[int]]]]:
+        """Open P6 and P5 PNM."""
+        with open(in_filename, 'rb') as file:  # Open file for mmap  # noqa: SIM117
+            with mmap.mmap(file.fileno(), 0, access=mmap.ACCESS_READ) as full_bytes_mmap:  # Opening mmap
                 # ↓ Getting header by pattern
                 header = search(
                     rb'(^P\d\s(?:\s*#.*\s)*'  # last \s gives better compatibility than [\r\n]
@@ -184,19 +197,29 @@ def pnm2list(in_filename: str) -> tuple[int, int, int, int, list[list[list[int]]
         list_1d = array_1d.tolist()
         del array_1d  # Cleanup
 
-        # ↓ Reshaping flat 1D list to 3Dlist
+        # ↓ Reshaping flat 1D list to 3D list
+        if tuplevel == 'pixel':  # create list[list[tuple[int]]]
+            list_3d = [[tuple([list_1d[z + x * Z + y * X * Z] for z in range(Z)]) for x in range(X)] for y in range(Y)]
+            del list_1d
+            return (X, Y, Z, maxcolors, list_3d)
+
+        if tuplevel == 'image':  # create tuple[tuple[tuple[int]]]
+            list_3d = tuple([tuple([tuple([list_1d[z + x * Z + y * X * Z] for z in range(Z)]) for x in range(X)]) for y in range(Y)])
+            del list_1d
+            return (X, Y, Z, maxcolors, list_3d)
+
+        # ↓ If none of the 'tuplevel' above ensued, create list[list[list[int]]]
         list_3d = [[[list_1d[z + x * Z + y * X * Z] for z in range(Z)] for x in range(X)] for y in range(Y)]
         del list_1d  # Cleanup
-
         return (X, Y, Z, maxcolors, list_3d)
 
-    """ ┌──────────────────────────┐
+    """ ╒══════════════════════════╕
         │ IF ASCII continuous tone │
-        └──────────────────────────┘ """
+        ╰──────────────────────────╯ """
 
-    def _p32(in_filename: str) -> tuple[int, int, int, int, list[list[list[int]]]]:
-        """Open P3 and P5 PNM"""
-        with open(in_filename, 'r') as file:  # Open file for mmap
+    def _p32(in_filename: str, tuplevel=None) -> tuple[int, int, int, int, list[list[list[int]]]]:
+        """Open P3 and P2 PNM."""
+        with open(in_filename, 'r') as file:  # noqa: SIM117
             with mmap.mmap(file.fileno(), 0, access=mmap.ACCESS_READ) as full_bytes_mmap:
                 # ↓ Getting header by pattern
                 header = search(
@@ -231,18 +254,28 @@ def pnm2list(in_filename: str) -> tuple[int, int, int, int, list[list[list[int]]
         del filtered_chars  # Cleanup
 
         # ↓ Converting 1D list of strings to 3D list of int
+        if tuplevel == 'pixel':  # create list[list[tuple[int]]]
+            list_3d = [[tuple([int(list_1d[z + x * Z + y * X * Z]) for z in range(Z)]) for x in range(X)] for y in range(Y)]
+            del list_1d
+            return (X, Y, Z, maxcolors, list_3d)
+
+        if tuplevel == 'image':  # create tuple[tuple[tuple[int]]]
+            list_3d = tuple([tuple([tuple([int(list_1d[z + x * Z + y * X * Z]) for z in range(Z)]) for x in range(X)]) for y in range(Y)])
+            del list_1d
+            return (X, Y, Z, maxcolors, list_3d)
+
+        # ↓ If none of the 'tuplevel' above ensued, create list[list[list[int]]]
         list_3d = [[[int(list_1d[z + x * Z + y * X * Z]) for z in range(Z)] for x in range(X)] for y in range(Y)]
         del list_1d  # Cleanup
-
         return (X, Y, Z, maxcolors, list_3d)
 
-    """ ┌───────────────────────┐
+    """ ╒═══════════════════════╕
         │ IF Binary 1 Bit/pixel │
-        └───────────────────────┘ """
+        ╰───────────────────────╯ """
 
-    def _p4(in_filename: str) -> tuple[int, int, int, int, list[list[list[int]]]]:
-        """Open P4 PNM"""
-        with open(in_filename, 'rb') as file:  # Open file for mmap
+    def _p4(in_filename: str, tuplevel=None) -> tuple[int, int, int, int, list[list[list[int]]]]:
+        """Open P4 PNM."""
+        with open(in_filename, 'rb') as file:  # noqa: SIM117
             with mmap.mmap(file.fileno(), 0, access=mmap.ACCESS_READ) as full_bytes_mmap:
                 # ↓ Getting header by pattern. Note that for 1 bit pattern does not include maxcolors
                 header = search(
@@ -271,7 +304,7 @@ def pnm2list(in_filename: str) -> tuple[int, int, int, int, list[list[list[int]]
         # ↑ got copy of file without header as `filtered_bytes` bytes
 
         # ↓ Converting packed bits from bytes to 3D list of int, inverting values,
-        #   and multiplying by maxcolor to obtain 8 bit L.
+        #   and multiplying by maxcolors to obtain 8 bit L.
         row_width = (X + 7) // 8  # Rounded up version of width, to get whole bytes including junk at EOLNs
         list_3d = []
         for y in range(Y):
@@ -281,21 +314,28 @@ def pnm2list(in_filename: str) -> tuple[int, int, int, int, list[list[list[int]]
                 # ↓ Unpacking bytes to int(bits), including artificial junk in a last one in a row
                 single_byte_bits = [int(bit) for bit in bin(single_byte)[2:].zfill(8)]
                 # ↓ renormalizing colors from ink on/off to L model, replacing int with [int]
-                single_byte_bits_normalized = [[maxcolors * (1 - c)] for c in single_byte_bits]
+                if tuplevel == 'pixel' or tuplevel == 'image':  # create tuple[int]]
+                    single_byte_bits_normalized = [(maxcolors * (1 - c),) for c in single_byte_bits]
+                else:
+                    single_byte_bits_normalized = [[maxcolors * (1 - c)] for c in single_byte_bits]
                 # ↓ assembling row, junk at the end included
                 row.extend(single_byte_bits_normalized)
             # ↓ Assembling image from rows, cutting junk off in the process
-            list_3d.append(row[0:X])
-
+            if tuplevel == 'image':  # create tuple[tuple[int]]
+                list_3d.append(tuple(row[0:X]))
+            else:
+                list_3d.append(row[0:X])
+        if tuplevel == 'image':  # create tuple[tuple[tuple[int]]]
+            list_3d = tuple(list_3d)
         return (X, Y, Z, maxcolors, list_3d)
 
-    """ ┌──────────────────────┐
+    """ ╒══════════════════════╕
         │ IF ASCII 1 Bit/pixel │
-        └──────────────────────┘ """
+        ╰──────────────────────╯ """
 
-    def _p1(in_filename: str) -> tuple[int, int, int, int, list[list[list[int]]]]:
-        """Open P1 PNM"""
-        with open(in_filename, 'r') as file:  # Open file for mmap
+    def _p1(in_filename: str, tuplevel=None) -> tuple[int, int, int, int, list[list[list[int]]]]:
+        """Open P1 PNM."""
+        with open(in_filename, 'r') as file:  # noqa: SIM117
             with mmap.mmap(file.fileno(), 0, access=mmap.ACCESS_READ) as full_bytes_mmap:
                 # ↓ Getting header by pattern. Note that for 1 bit pattern does not include maxcolors
                 header = search(
@@ -328,31 +368,37 @@ def pnm2list(in_filename: str) -> tuple[int, int, int, int, list[list[list[int]]
         del filtered_chars  # Cleanup
 
         # ↓ Converting str to 3D list of int,
-        #   inverting values and multiplying by maxcolor to obtain 8 bit L.
+        #   inverting values and multiplying by maxcolors to obtain 8 bit L.
+        if tuplevel == 'pixel':  # create list[list[tuple[int]]]
+            list_3d = [[(maxcolors * (1 - int(str_1d[x + y * X])),) for x in range(X)] for y in range(Y)]
+            del str_1d  # Cleanup
+            return (X, Y, Z, maxcolors, list_3d)
+
+        if tuplevel == 'image':  # create tuple[tuple[tuple[int]]]
+            list_3d = tuple([tuple([(maxcolors * (1 - int(str_1d[x + y * X])),) for x in range(X)]) for y in range(Y)])
+            del str_1d  # Cleanup
+            return (X, Y, Z, maxcolors, list_3d)
+
+        # ↓ If none of the 'tuplevel' above ensued, create list[list[list[int]]]
         list_3d = [[[maxcolors * (1 - int(str_1d[x + y * X]))] for x in range(X)] for y in range(Y)]
         del str_1d  # Cleanup
-
         return (X, Y, Z, maxcolors, list_3d)
 
-    """ ┌─────────────────────────┐
-        │ PNM header type switch. │
-        │   Format check ensued.  │
-        └─────────────────────────┘ """
+    """ ┌───────────────────────────┐
+        │  PNM header type switch.  │
+        │ Format check ensued here! │
+        └───────────────────────────┘ """
     with open(in_filename, 'rb') as file:  # Open file in binary mode
         beginnings = file.read(2)  # Read first two bytes 'Pn' and close file
 
-    if beginnings.startswith(b'P6'):  # Binary PPM
-        return _p65(in_filename)
-    elif beginnings.startswith(b'P5'):  # Binary PGM
-        return _p65(in_filename)
-    elif beginnings.startswith(b'P4'):  # Binary PBM
-        return _p4(in_filename)
-    elif beginnings.startswith(b'P3'):  # ASCII PPM
-        return _p32(in_filename)
-    elif beginnings.startswith(b'P2'):  # ASCII PGM
-        return _p32(in_filename)
-    elif beginnings.startswith(b'P1'):  # ASCII PBM
-        return _p1(in_filename)
+    if beginnings.startswith((b'P6', b'P5')):  # Binary PPM or PGM
+        return _p65(in_filename, tuplevel)
+    if beginnings.startswith((b'P3', b'P2')):  # ASCII PPM or PGM
+        return _p32(in_filename, tuplevel)
+    if beginnings.startswith(b'P4'):  # Binary PBM
+        return _p4(in_filename, tuplevel)
+    if beginnings.startswith(b'P1'):  # ASCII PBM
+        return _p1(in_filename, tuplevel)
     else:
         raise ValueError(f'Header {beginnings} is not in P1:P6 range')
 
@@ -369,31 +415,36 @@ def list2bin(list_3d: list[list[list[int]]], maxcolors: int, show_chessboard: bo
     """Convert nested image data list to PGM P5 or PPM P6 bytes in memory.
 
     :param list_3d: image as list (image) of lists (rows) of lists (pixels)
-    of ints (channels);
+        of ints (channels);
     :type list_3d: list[list[list[int]]]
-    :param int maxcolors: number of colors per channel for current image,
-    either 255, or 65535;
+    :param int maxcolors: maximal color value per channel for current image,
+        either 255, or 65535;
     :param bool show_chessboard: if set ``True`` and alpha channel exist,
-    render preview against chessboard, otherwise skip alpha;
+        render preview against chessboard, otherwise skip alpha;
     :return: PNM-like object in memory.
     :rtype: bytes
 
     """
 
+    # ↓ Image X, Y, Z sizes
+    Y, X, Z = (len(list_3d), len(list_3d[0]), len(list_3d[0][0]))
+
     def _chess(x: int, y: int) -> int:
-        """Chessboard pattern, size and color match Photoshop 7.0 Light Medium.
+        """Chessboard pattern, size and color match Photoshop 7.0.
 
         Photoshop chess pattern preset parameters:
         - Small: 4 px | Medium: 8 px | Large: 16 px;
         - Light: (0.8, 1.0) | Medium: (0.4, 0.6) | Dark: (0.2, 0.4) of ``maxcolors``.
 
         """
-        return int(maxcolors * 0.8) if ((y // 8) % 2) == ((x // 8) % 2) else maxcolors
 
-    # ↓ Image X, Y, Z sizes
-    Y = len(list_3d)
-    X = len(list_3d[0])
-    Z = len(list_3d[0][0])
+        if X < 65 or Y < 65:
+            chess_size = 4
+        elif X > 512 or Y > 512:
+            chess_size = 16
+        else:
+            chess_size = 8
+        return int(maxcolors * 0.8) if ((y // chess_size) % 2) == ((x // chess_size) % 2) else maxcolors
 
     magic = 'P5' if Z < 3 else 'P6'  # PGM or PPM
 
@@ -433,18 +484,16 @@ def list2pnmbin(out_filename: str, list_3d: list[list[list[int]]], maxcolors: in
 
     :param str out_filename: name of the PNM file to be written;
     :param list_3d: image as list (image) of lists (rows) of lists (pixels)
-    of ints (channels);
+        of ints (channels);
     :type list_3d: list[list[list[int]]]
-    :param int maxcolors: number of colors per channel for current image,
-    either 255, or 65535.
+    :param int maxcolors: maximal color value per channel for current image,
+        either 255, or 65535.
     :return: None
 
     """
 
     # ↓ Image X, Y, Z sizes
-    Y = len(list_3d)
-    X = len(list_3d[0])
-    Z = len(list_3d[0][0])
+    Y, X, Z = (len(list_3d), len(list_3d[0]), len(list_3d[0][0]))
 
     magic = 'P5' if Z < 3 else 'P6'  # PGM or PPM
     Z_READ = Z if Z == 3 or Z == 1 else min(Z, 4) - 1  # To skip alpha later; clipping anything above RGB off
@@ -460,8 +509,6 @@ def list2pnmbin(out_filename: str, list_3d: list[list[list[int]]], maxcolors: in
                 row_array.byteswap()  # Critical for 16 bits per channel
             file_pnm.write(row_array)  # Writing row bytes array to file
 
-    return None
-
 
 # ↑ End of 'list2pnmbin' function writing binary PPM/PGM file
 
@@ -476,18 +523,16 @@ def list2pnmascii(out_filename: str, list_3d: list[list[list[int]]], maxcolors: 
 
     :param str out_filename: name of the PNM file to be written;
     :param list_3d: image as list (image) of lists (rows) of lists (pixels)
-    of ints (channels);
+        of ints (channels);
     :type list_3d: list[list[list[int]]]
-    :param int maxcolors: number of colors per channel for current image,
-    either 255, or 65535.
+    :param int maxcolors: maximal color value per channel for current image,
+        either 255, or 65535.
     :return: None
 
     """
 
     # ↓ Image X, Y, Z sizes
-    Y = len(list_3d)
-    X = len(list_3d[0])
-    Z = len(list_3d[0][0])
+    Y, X, Z = (len(list_3d), len(list_3d[0]), len(list_3d[0][0]))
 
     if Z < 3:  # L or LA image
         magic = 'P2'
@@ -507,8 +552,6 @@ def list2pnmascii(out_filename: str, list_3d: list[list[list[int]]], maxcolors: 
                         file_pnm.write('\n')  # Writing break to fulfill specs line <= 60 char
                     file_pnm.write(f'{list_3d[y][x][z]} ')  # Writing channel value to file
 
-    return None
-
 
 # ↑ End of 'list2pnmascii' function writing ASCII PPM/PGM file
 
@@ -523,10 +566,10 @@ def list2pnm(out_filename: str, list_3d: list[list[list[int]]], maxcolors: int, 
 
     :param str out_filename: name of the PNM file to be written;
     :param list_3d: image as list (image) of lists (rows) of lists (pixels)
-    of ints (channels);
+        of ints (channels);
     :type list_3d: list[list[list[int]]]
-    :param int maxcolors: number of colors per channel for current image,
-    either 255, or 65535;
+    :param int maxcolors: maximal color value per channel for current image,
+        either 255, or 65535;
     :param bool bin: whether written file will be binary or ASCII.
     :return: None
 
@@ -536,8 +579,6 @@ def list2pnm(out_filename: str, list_3d: list[list[list[int]]], maxcolors: int, 
         list2pnmbin(out_filename, list_3d, maxcolors)
     else:
         list2pnmascii(out_filename, list_3d, maxcolors)
-
-    return None
 
 
 # ↑ End of 'list2pnm' switch function writing any type of PPM/PGM file
