@@ -2,7 +2,11 @@
 
 ## Overview
 
-Currently **imin** repository contains code for barycentric and bilinear image interpolation, sparingly documented *und highly dangerous © Professor Professor*.
+Currently **imin** repository contains code for barycentric and bilinear image interpolation using pure Python. Free-threaded Python is highly recommended.
+
+> [!WARNING]
+>
+> The code is evolutionary structured (*i.e.* hard to understand), sparingly documented, *und highly dangerous! © Professor Professor*.
 
 [Bilinear image interpolation](https://en.wikipedia.org/wiki/Bilinear_interpolation) works by considering pixel as ⬛ square, and performing interpolation between four corners.
 
@@ -10,7 +14,7 @@ Barycentric image interpolation, the most interesting part of the module, works 
 
 ## Functional branch
 
-This branch, **"Functional"**, specifically, contain **imin** module version to be used as functions, not classes, and several shell applications to show the module in action.
+This branch, **"Functional"**, specifically, contain **imin** module version to be used as functions, not classes, and several shell applications to show the module in action. **Imin** version designed as a class is contained in [**"Objectable"**](https://github.com/Dnyarri/imin/tree/objectable) branch.
 
 ## Figures
 
