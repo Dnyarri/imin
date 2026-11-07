@@ -481,7 +481,7 @@ def onSave() -> None:
     sortir.unbind_all('<Control-s>')
     # ↓ binding switch on preview click
     zanyato.unbind('<Button-1>')  # left click
-    zanyato.unbind('<space>')  # # "Space" key. May be worth binding whole sortir?
+    sortir.unbind_all('<space>')  # # "Space" key.
     # ↓ preview source
     ShowPreview(preview_src, 'Source')
     # ↓ Adding filename, mode and status to window title a-la Photoshop
