@@ -27,7 +27,7 @@ __author__ = 'Ilya Razmanov'
 __copyright__ = '(c) 2025-2026 Ilya Razmanov'
 __credits__ = 'Ilya Razmanov'
 __license__ = 'unlicense'
-__version__ = '26.11.7.7'
+__version__ = '26.11.7.11'  # 7 Nov 2026
 __maintainer__ = 'Ilya Razmanov'
 __email__ = 'ilyarazmanov@gmail.com'
 __status__ = 'Development'
@@ -508,7 +508,7 @@ def onSave() -> None:
     sortir.unbind_all('<Control-s>')
     # ↓ binding switch on preview click
     zanyato.unbind('<Button-1>')  # left click
-    zanyato.unbind('<space>')  # # "Space" key. May be worth binding whole sortir?
+    sortir.unbind_all('<space>')  # # "Space" key.
     # ↓ preview source
     ShowPreview(preview_src, 'Source')
     # ↓ Adding filename, mode and status to window title a-la Photoshop
