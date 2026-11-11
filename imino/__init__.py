@@ -1,16 +1,17 @@
 """Image interpolation methods, currently bilinear and barycentric,
-poorly documented, utterly untested und highly dangerous!"""
+poorly documented, *totally untested und highly dangerous!*"""
 
 __author__ = 'Ilya Razmanov'
 __copyright__ = '(c) 2025-2026 Ilya Razmanov'
 __credits__ = 'Ilya Razmanov'
 __license__ = 'unlicense'
-__version__ = '26.11.7.7'
+__version__ = '26.11.11.11'
 __maintainer__ = 'Ilya Razmanov'
 __email__ = 'ilyarazmanov@gmail.com'
 __status__ = 'Development'
 
 from operator import mul
+from typing import Literal, Self
 
 
 class Picture:
@@ -115,7 +116,7 @@ class Picture:
         """Maximal color value per channel (int), typically either 255, or 65535;"""
         return self.maxcolors
 
-    def src(self, x: float, y: float, edge: int | str = 'repeat') -> list[int]:
+    def src(self, x: float, y: float, edge: Literal['zero', 'repeat', 'wrap', 0, 1, 2] = 'repeat') -> list[int]:
         """Whole pixel from image list, nearest neighbour interpolation,
         returns list[channel] for pixel(x, y).
 
@@ -150,7 +151,7 @@ class Picture:
             else:
                 return self.image_data[int(y)][int(x)]
 
-    def blin(self, x: float, y: float, edge: int | str) -> list[int]:
+    def blin(self, x: float, y: float, edge: Literal['zero', 'repeat', 'wrap', 0, 1, 2] = 'repeat') -> list[int]:
         """Returns bilinearly interpolated pixel(x, y).
 
         :param float x: ``x`` coordinate of pixel being read;
@@ -202,7 +203,7 @@ class Picture:
         pixelvalue = [*map(_intaddup, norm00, norm01, norm10, norm11)]
         return pixelvalue
 
-    def baryc(self, x: float, y: float, edge: int | str) -> list[int]:
+    def baryc(self, x: float, y: float, edge: Literal['zero', 'repeat', 'wrap', 0, 1, 2] = 'repeat') -> list[int]:
         """Returns barycentrically interpolated pixel(x, y).
 
         :param float x: ``x`` coordinate of pixel being read;
@@ -352,7 +353,7 @@ class Picture:
 
         return pixelvalue
 
-    def pixel(self, x: float, y: float, edge: int | str, method: int | str) -> list[int]:
+    def pixel(self, x: float, y: float, edge: Literal['zero', 'repeat', 'wrap', 0, 1, 2] = 'repeat', method: Literal['nearest', 'bilinear', 'barycentric', 0, 1, 2] = 'bilinear') -> list[int]:
         """Configurable method of reading interpolated pixel,
         returns list[channel] for pixel(x, y).
 
@@ -381,7 +382,7 @@ class Picture:
         if method == 2 or method == 'barycentric':
             return self.baryc(x, y, edge)
 
-    def rescale(self, width: int, height: int, edge: int | str = 'repeat', method: int | str = 'bilinear'):
+    def rescale(self, width: int, height: int, edge: Literal['zero', 'repeat', 'wrap', 0, 1, 2] = 'repeat', method: Literal['nearest', 'bilinear', 'barycentric', 0, 1, 2] = 'bilinear') -> Self:
         """Rescale **``self``** image (chainable method), using bilinear or barycentric interpolation depending on ``method``.
 
         :param int width: updated **``self``** image width, pixels;
@@ -407,7 +408,7 @@ class Picture:
         self.image_data = _rescale(self.image_data, width, height, edge, method)
         return self
 
-    def scale(self, width: int, height: int, edge: int | str = 'repeat', method: int | str = 'bilinear'):
+    def scale(self, width: int, height: int, edge: Literal['zero', 'repeat', 'wrap', 0, 1, 2] = 'repeat', method: Literal['nearest', 'bilinear', 'barycentric', 0, 1, 2] = 'bilinear') -> tuple[list[list[list[int]]], int]:
         """Return image, rescaled using bilinear or barycentric interpolation depending on ``method``.
 
         :param int width: resulting image width, pixels;
@@ -438,7 +439,7 @@ class Picture:
             self.maxcolors,
         )  # WARNING: Gives extra tuple() when reading back, eliminated by __init__
 
-    def displace(self, fx, fy, width: int, height: int, edge: int | str = 'repeat', method: int | str = 'bilinear'):
+    def displace(self, fx, fy, width: int, height: int, edge: int | str = 'repeat', method: int | str = 'bilinear') -> tuple[list[list[list[int]]], int]:
         """Image displacement according to ``fx`` and ``fy`` functions, using bilinear or barycentric interpolation depending on ``method`` switch.
 
         :param fx: actual x coordinate to read as a function of (x, y) requested;
@@ -470,7 +471,7 @@ class Picture:
             self.maxcolors,
         )
 
-    def rotate(self, angle: float, edge: int | str = 'repeat', method: int | str = 'bilinear'):
+    def rotate(self, angle: float, edge: Literal['zero', 'repeat', 'wrap', 0, 1, 2] = 'repeat', method: Literal['nearest', 'bilinear', 'barycentric', 0, 1, 2] = 'bilinear') -> tuple[list[list[list[int]]], int]:
         """Image rotation by means of displacement with algorithmic map, using bilinear or barycentric interpolation depending on ``method`` switch.
 
         :param float angle: rotation angle, degree counterclockwise;
@@ -499,13 +500,13 @@ class Picture:
         width = int(abs(COS * self.X) + abs(SIN * self.Y))
         height = int(abs(SIN * self.X) + abs(COS * self.Y))
 
-        def fx(x, y):
+        def _fx(x, y):
             return ((x - (width / 2)) * COS) - ((y - (height / 2)) * SIN) + (self.X / 2)
 
-        def fy(x, y):
+        def _fy(x, y):
             return ((x - (width / 2)) * SIN) + ((y - (height / 2)) * COS) + (self.Y / 2)
 
-        new_image_data = _displace(self.image_data, fx, fy, width, height, edge, method)
+        new_image_data = _displace(self.image_data, _fx, _fy, width, height, edge, method)
         return (
             new_image_data,
             self.maxcolors,
