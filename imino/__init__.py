@@ -439,7 +439,7 @@ class Picture:
             self.maxcolors,
         )  # WARNING: Gives extra tuple() when reading back, eliminated by __init__
 
-    def displace(self, fx, fy, width: int, height: int, edge: int | str = 'repeat', method: int | str = 'bilinear') -> tuple[list[list[list[int]]], int]:
+    def displace(self, fx, fy, width: int, height: int, edge: Literal['zero', 'repeat', 'wrap', 0, 1, 2] = 'repeat', method: Literal['nearest', 'bilinear', 'barycentric', 0, 1, 2] = 'bilinear') -> tuple[list[list[list[int]]], int]:
         """Image displacement according to ``fx`` and ``fy`` functions, using bilinear or barycentric interpolation depending on ``method`` switch.
 
         :param fx: actual x coordinate to read as a function of (x, y) requested;
