@@ -5,7 +5,7 @@ __author__ = 'Ilya Razmanov'
 __copyright__ = '(c) 2025-2026 Ilya Razmanov'
 __credits__ = 'Ilya Razmanov'
 __license__ = 'unlicense'
-__version__ = '26.11.11.11'
+__version__ = '26.11.12.13'
 __maintainer__ = 'Ilya Razmanov'
 __email__ = 'ilyarazmanov@gmail.com'
 __status__ = 'Development'
@@ -40,45 +40,32 @@ class Picture:
     Methods:
     --------
 
-        - ``pixel(x: float, y: float, method)``:
-            return pixel having x, y coordinates, as list(channel: int), interpolated using:
-                - ``method=1`` or ``method="bilinear"``: bilinear interpolation;
-                - ``method=2`` or ``method="barycentric"``: barycentric interpolation.
+    - ``pixel(x: float, y: float, method)``:
+        return pixel having x, y coordinates, as list(channel: int), interpolated using:
+            - ``method=1`` or ``method="bilinear"``: bilinear interpolation;
+            - ``method=2`` or ``method="barycentric"``: barycentric interpolation.
 
-        - ``rescale(width: int, height: int, method)``:
-            chainable rescale ``self`` to new ``width`` and ``height``, interpolated using:
-                - ``method=1` or `method="bilinear"``: bilinear interpolation;
-                - ``method=2` or `method="barycentric"``: barycentric interpolation.
+    - ``rescale(width: int, height: int, method)``:
+        chainable rescale ``self`` to new ``width`` and ``height``, interpolated using:
+            - ``method=1` or `method="bilinear"``: bilinear interpolation;
+            - ``method=2` or `method="barycentric"``: barycentric interpolation.
 
-        - ``scale(width: int, height: int, method)``:
-            return rescaled image as list(list(pixel)), having new ``width`` and ``height``, interpolated using:
-                - ``method=1` or `method="bilinear"``: bilinear interpolation;
-                - ``method=2` or `method="barycentric"``: barycentric interpolation.
+    - ``scale(width: int, height: int, method)``:
+        return rescaled image as list(list(pixel)), having new ``width`` and ``height``, interpolated using:
+            - ``method=1` or `method="bilinear"``: bilinear interpolation;
+            - ``method=2` or `method="barycentric"``: barycentric interpolation.
 
-            and ``maxcolors``. Does not change ``self``.
+        and ``maxcolors``. Does not change ``self``.
 
-        - ``displace(fx, fy, width, height, edge, method)``:
-            arbitrary pixels displacement according to ``fx(x, y)`` and ``fy(x, y)`` functions,
-            edge extrapolation with:
-                - ``edge=1`` or ``edge='repeat'``: repeat edge, like Photoshop;
-                - ``edge=2`` or ``edge='wrap'``: wrap around;
-                - ``edge=``other: extrapolate with zeroes.
-                Alpha=0 correspond to transparent.
-            interpolation using:
-                - ``method=1` or `method="bilinear"``: bilinear interpolation;
-                - ``method=2` or `method="barycentric"``: barycentric interpolation.
-
-            ``width`` and ``height`` of resulting image to be determined by the developer.
-
-        - ``rotate(angle, edge, method)``:
-            image rotation by ``angle`` degrees counterclockwise, edge extrapolation with:
-                - ``edge=1`` or ``edge='repeat'``: repeat edge, like Photoshop;
-                - ``edge=2`` or ``edge='wrap'``: wrap around;
-                - ``edge=``other: extrapolate with zeroes.
-                Alpha=0 correspond to transparent.
-            interpolation using:
-                - ``method=1` or `method="bilinear"``: bilinear interpolation;
-                - ``method=2` or `method="barycentric"``: barycentric interpolation.
+    - ``rotate(angle, edge, method)``:
+        image rotation by ``angle`` degrees counterclockwise, edge extrapolation with:
+            - ``edge=1`` or ``edge='repeat'``: repeat edge, like Photoshop;
+            - ``edge=2`` or ``edge='wrap'``: wrap around;
+            - ``edge=``other: extrapolate with zeroes.
+            Alpha=0 correspond to transparent.
+        interpolation using:
+            - ``method=1` or `method="bilinear"``: bilinear interpolation;
+            - ``method=2` or `method="barycentric"``: barycentric interpolation.
 
     """
 
@@ -95,26 +82,34 @@ class Picture:
         """
         if len(input) == 1:  # in case of extra tuple on the top of input tuple
             input = input[0]
-        self.image_data, self.maxcolors = input
+        self.image_data: list[list[list[int]]] = input[0]
+        """Image data nested 3D list."""
+        self.MAXCOLORS: int = input[1]
+        """Maximal color value per channel, either 255, or 65535."""
         self.Y = len(self.image_data)
         """Image height, px."""
         self.X = len(self.image_data[0])
         """Image width, px."""
         self.Z = len(self.image_data[0][0])
         """Number of channels."""
+        self.SIZE = (
+            self.X,
+            self.Y,
+            self.Z,
+        )
+        """Image nested 3D list sizes (X, Y, Z,)."""
 
     def data(self) -> list[list[list[int]]]:
         """Image data nested 3D list."""
         return self.image_data
 
-    def size(self) -> tuple[int, int, int]:
-        """Image nested 3D list sizes X, Y, Z."""
-        Y, X, Z = len(self.image_data), len(self.image_data[0]), len(self.image_data[0][0])
-        return (X, Y, Z)
-
     def maxcolors(self) -> int:
-        """Maximal color value per channel (int), typically either 255, or 65535;"""
-        return self.maxcolors
+        """Maximal color value per channel (int), typically either 255, or 65535."""
+        return self.MAXCOLORS
+
+    def size(self) -> tuple[int, int, int]:
+        """Image nested 3D list sizes (X, Y, Z,)."""
+        return self.SIZE
 
     def src(self, x: float, y: float, edge: Literal['zero', 'repeat', 'wrap', 0, 1, 2] = 'repeat') -> list[int]:
         """Whole pixel from image list, nearest neighbour interpolation,
@@ -122,7 +117,7 @@ class Picture:
 
         :param int x: ``x`` coordinate of pixel being read;
         :param int y: ``y`` coordinate of pixel being read;
-        :param int | str edge: edge extrapolation mode:
+        :param str | int edge: edge extrapolation mode:
 
             - ``edge=1`` or ``edge='repeat'``: repeat edge, like Photoshop;
             - ``edge=2`` or ``edge='wrap'``: wrap around;
@@ -134,6 +129,7 @@ class Picture:
         """
 
         X, Y, Z = self.size()
+        Z_COLOR = Z if Z == 1 or Z == 3 else min(Z - 1, 3)  # Number of color channels, alpha excluded.
         if edge == 1 or edge == 'repeat':
             # ↓ Repeat edge.
             cx = min(X - 1, max(0, int(x)))
@@ -146,9 +142,16 @@ class Picture:
             return self.image_data[cy][cx]
         else:
             # ↓ Zeroes.
-            if x < 0 or y < 0 or x > X - 1 or y > Y - 1:
-                return [0] * Z
-            else:
+            if x < 0 or y < 0 or x > X - 1 or y > Y - 1:  # Edge
+                if Z == 1 or Z == 3:
+                    return [0] * Z
+                else:
+                    cx = min(X - 1, max(0, int(x)))
+                    cy = min(Y - 1, max(0, int(y)))
+                    # ↓ Mixing source color along edges with zero alpha
+                    #   to avoid black ghosts. 
+                    return [*self.image_data[cy][cx][:Z_COLOR], 0]
+            else:  # Not edge
                 return self.image_data[int(y)][int(x)]
 
     def blin(self, x: float, y: float, edge: Literal['zero', 'repeat', 'wrap', 0, 1, 2] = 'repeat') -> list[int]:
@@ -156,51 +159,78 @@ class Picture:
 
         :param float x: ``x`` coordinate of pixel being read;
         :param float y: ``y`` coordinate of pixel being read;
-        :param int | str edge: edge extrapolation mode:
+        :param str | int edge: edge extrapolation mode:
 
             - ``edge=1`` or ``edge='repeat'``: repeat edge, like Photoshop;
             - ``edge=2`` or ``edge='wrap'``: wrap around;
             - ``edge=``other: extrapolate with zeroes.
-              Alpha=0 correspond to transparent.
+                Alpha=0 correspond to transparent.
         :return: interpolated pixel(x, y) value.
         :rtype: list[int]
 
-        """
+Pixels structure
+----------------
 
-        def _intaddup(a, b, c, d):
+Square corners are enumerated according to Soviet Army «snail» scheme
+
+    ``┌───┬───┐``   
+    ``│ 1 │ 2 │``   
+    ``├───┼───┤``   
+    ``│ 4 │ 3 │``   
+    ``└───┴───┘``   
+
+.. note:: Corners coordinates are calculated taking into account the fact that
+    for negative x and y values ``int(x) > x`` and ``int(y) > y ``correspondingly. """
+
+        def _intaddup_4(a, b, c, d):
             return int(a + b + c + d)
 
         Z = self.Z
 
         if x >= 0:
-            x0 = int(x)
+            x1 = int(x)
         else:
-            x0 = int(x) - 1
+            x1 = int(x) - 1
         if y >= 0:
-            y0 = int(y)
+            y1 = int(y)
         else:
-            y0 = int(y) - 1
-        # ↓ Starting corner pixels reading
-        pix00 = self.src(x0, y0, edge)
-        # ↓ In case of direct hit no interpolation required
-        if x == x0 and y == y0:
-            return pix00
-        # ↓ In case of a miss interpolation ensues
-        x1 = x0 + 1
-        y1 = y0 + 1
-        w00 = (x1 - x) * (y1 - y)
-        w01 = (x1 - x) * (y - y0)
-        w10 = (x - x0) * (y1 - y)
-        w11 = (x - x0) * (y - y0)
-        wt00 = (w00,) * Z
-        wt01 = (w01,) * Z
-        wt10 = (w10,) * Z
-        wt11 = (w11,) * Z
-        norm00 = [*map(mul, pix00, wt00)]
-        norm01 = [*map(mul, self.src(x0, y1, edge), wt01)]
-        norm10 = [*map(mul, self.src(x1, y0, edge), wt10)]
-        norm11 = [*map(mul, self.src(x1, y1, edge), wt11)]
-        pixelvalue = [*map(_intaddup, norm00, norm01, norm10, norm11)]
+            y1 = int(y) - 1
+
+        pix1 = self.src(x1, y1, edge)
+        if x == x1 and y == y1:
+            return pix1
+        x2 = x1 + 1
+        y2 = y1
+        x3 = x2
+        y3 = y1 + 1
+        x4 = x1
+        y4 = y3
+
+        pix2 = self.src(x2, y2, edge)
+        pix3 = self.src(x3, y3, edge)
+        pix4 = self.src(x4, y4, edge)
+
+        # ↓ Distance weights "w" for corner pixels
+        w1 = (x3 - x) * (y3 - y)
+        w2 = (x - x4) * (y4 - y)
+        w3 = (x - x1) * (y - y1)
+        w4 = (x2 - x) * (y - y2)
+
+        # ↓ Packing weights "w" as tuples "wt" for map() below
+        wt1 = (w1,) * Z
+        wt2 = (w2,) * Z
+        wt3 = (w3,) * Z
+        wt4 = (w4,) * Z
+
+        # ↓ Scaling corner pixels values "pix" according to weights above
+        norm1 = [*map(mul, pix1, wt1)]
+        norm2 = [*map(mul, pix2, wt2)]
+        norm3 = [*map(mul, pix3, wt3)]
+        norm4 = [*map(mul, pix4, wt4)]
+
+        # ↓ Adding up scaled corner pixels "norm" channel by channel
+        pixelvalue = [*map(_intaddup_4, norm1, norm4, norm2, norm3)]
+
         return pixelvalue
 
     def baryc(self, x: float, y: float, edge: Literal['zero', 'repeat', 'wrap', 0, 1, 2] = 'repeat') -> list[int]:
@@ -208,7 +238,7 @@ class Picture:
 
         :param float x: ``x`` coordinate of pixel being read;
         :param float y: ``y`` coordinate of pixel being read;
-        :param int | str edge: edge extrapolation mode:
+        :param str | int edge: edge extrapolation mode:
 
             - ``edge=1`` or ``edge='repeat'``: repeat edge, like Photoshop;
             - ``edge=2`` or ``edge='wrap'``: wrap around;
@@ -217,7 +247,27 @@ class Picture:
         :return: interpolated pixel(x, y) value.
         :rtype: list[int]
 
-        """
+Pixels structure
+----------------
+
+Square corners are enumerated according to Soviet Army «snail» scheme
+
+    ``┌───┬───┐``   
+    ``│ 1 │ 2 │``   
+    ``├───┼───┤``   
+    ``│ 4 │ 3 │``   
+    ``└───┴───┘``   
+
+and square divided onto two triangles by either 1-3 [⧅] or 
+2-4 [⧄] diagonal depending on what color difference is bigger
+(i.e. on directional local contrast). 
+
+Each triangle is right-angled and takes 0.5 of area of
+1×1 length unit square (i.e. 2×2 pixel number square),
+that greatly simplifies calculation.
+
+.. note:: Corners coordinates are calculated taking into account the fact that
+    for negative x and y values ``int(x) > x`` and ``int(y) > y ``correspondingly. """
 
         def _intaddup_3(a, b, c):
             return int(a + b + c)
@@ -324,8 +374,8 @@ class Picture:
 
                 return pixelvalue
 
-        """ If none of the criteria above satisfied, bilinear interpolation ensue
-            to avoid introducing asymmetrical artifacts. """
+        """ If none of the criteria above satisfied, none of diagonals is "best", so
+            bilinear interpolation ensue to avoid introducing asymmetrical artifacts. """
 
         def _intaddup_4(a, b, c, d):
             return int(a + b + c + d)
@@ -359,7 +409,7 @@ class Picture:
 
         :param float x: ``x`` coordinate of pixel being read;
         :param float y: ``y`` coordinate of pixel being read;
-        :param int | str edge: edge extrapolation mode:
+        :param str | int edge: edge extrapolation mode:
 
             - ``edge=1`` or ``edge='repeat'``: repeat edge, like Photoshop;
             - ``edge=2`` or ``edge='wrap'``: wrap around;
