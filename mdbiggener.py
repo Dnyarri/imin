@@ -375,9 +375,10 @@ def RunFilter(event=None) -> None:
     start = time()
     picture.rescale(XNEW, YNEW, method=method)
     timing = time() - start
-    result_image = picture.data()
-    # ↓ Another way to get image data:
+    # ↓ Two ways to get image data:
+    # result_image = picture.data()
     # result_image = picture.image_data
+    result_image = picture.data()
     X, Y, Z = picture.size()
 
     """ ╒═ Scaling - alternative variant ═════════╕
