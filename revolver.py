@@ -340,12 +340,12 @@ def RunFilter(event=None) -> None:
         │ displacement map. ╭────────╯
         ╰───────────────────╯ """
 
-    picture = Picture(source_image, maxcolors)
+    picture_in = Picture(source_image, maxcolors)
     start = time()
-    result_picture = Picture(picture.rotate(ini_x.get(), edge=edge, method=method))
+    picture_out = picture_in.rotate(ini_x.get(), edge=edge, method=method)
     timing = time() - start
-    result_image = result_picture.data()
-    XNEW, YNEW, Z = result_picture.size()
+    result_image = picture_out.data()
+    XNEW, YNEW, Z = picture_out.size()
 
     # ↓ preview result
     preview_data = list2bin(result_image, maxcolors, show_chessboard=True)

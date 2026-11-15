@@ -368,29 +368,29 @@ def RunFilter(event=None) -> None:
     UIBusy()
 
     """ ╒═ Scaling - chainable variant ═╕
-        │ Changing `picture` itself     │
+        │ Changing `picture_in` itself  │
         ╰───────────────────────────────╯ """
 
-    picture = Picture(source_image, maxcolors)
+    picture_in = Picture(source_image, maxcolors)
     start = time()
-    picture.rescale(XNEW, YNEW, method=method)
+    picture_in.scale(XNEW, YNEW, method=method, ego=True)
     timing = time() - start
     # ↓ Two ways to get image data:
-    # result_image = picture.data()
-    # result_image = picture.image_data
-    result_image = picture.data()
-    X, Y, Z = picture.size()
+    # result_image = picture_in.data()
+    # result_image = picture_in.image_data
+    result_image = picture_in.data()
+    X, Y, Z = picture_in.size()
 
-    """ ╒═ Scaling - alternative variant ═════════╕
-        │ Making another Picture `result_picture` │
-        ╰─────────────────────────────────────────╯ """
+    """ ╒═ Scaling - alternative variant ══════╕
+        │ Making another Picture `picture_out` │
+        ╰──────────────────────────────────────╯ """
     """
-    picture = Picture(source_image, maxcolors)
+    picture_in = Picture(source_image, maxcolors)
     start = time()
-    result_picture = Picture(picture.scale(XNEW, YNEW, method=method))
+    picture_out = picture_in.scale(XNEW, YNEW, method=method, ego=False)
     timing = time() - start
-    result_image = result_picture.data()
-    X, Y, Z = result_picture.size()
+    result_image = picture_out.data()
+    X, Y, Z = picture_out.size()
     """
 
     # ↓ preview result

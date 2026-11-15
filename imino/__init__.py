@@ -1,11 +1,11 @@
 """Image interpolation methods, currently bilinear and barycentric,
-poorly documented, *totally untested und highly dangerous!*"""
+always in motion, poorly documented, *totally untested und highly dangerous!*"""
 
 __author__ = 'Ilya Razmanov'
 __copyright__ = '(c) 2025-2026 Ilya Razmanov'
 __credits__ = 'Ilya Razmanov'
 __license__ = 'unlicense'
-__version__ = '26.11.12.13'
+__version__ = '26.11.15.19'
 __maintainer__ = 'Ilya Razmanov'
 __email__ = 'ilyarazmanov@gmail.com'
 __status__ = 'Development'
@@ -15,8 +15,9 @@ from typing import Literal, Self
 
 
 class Picture:
-    """Various ways to read a pixel=image(x, y) from 3D list[list[list[int]]],
-    interpolate it, or transform whole image using one of interpolation methods.
+    """Contains image as 3D list[list[list[int]]], and various methods
+    to read a pixel=image(x, y), interpolate it, or transform whole image
+    using one of interpolation methods.
 
     Usage
     -----
@@ -25,55 +26,59 @@ class Picture:
 
         picture = Picture(image_data, maxcolors)
 
-    then::
+    where:
 
-        result_picture = Picture(picture.scale(width, height, method))
+    - ``image_data``: list[list[list[int]]] image of rows of pixels of channels;
+    - ``maxcolors``: int maximal value of colors per channel,
+        either 255 for 8 bit or 65535 for 16 bit images.
 
-    or::
+    then follow **Main methods** section below.
 
-        result_picture = Picture(picture.rotate(angle, edge, method))
+    Main methods:
+    -------------
 
-    or::
+    - .. function:: ``data()``:
+            return list[list[list[int]]] image of rows of pixels of channels.
 
-        result_picture = Picture(picture.displace(fx, fy, width, height, edge, method))
+    - .. function:: ``maxcolors()``:
+            return int maximal value of colors per channel.
 
-    Methods:
-    --------
+    - .. function:: ``size()``:
+            return tuple[int, int, int] of image sizes.
 
-    - ``pixel(x: float, y: float, method)``:
-        return pixel having x, y coordinates, as list(channel: int), interpolated using:
-            - ``method=1`` or ``method="bilinear"``: bilinear interpolation;
-            - ``method=2`` or ``method="barycentric"``: barycentric interpolation.
+    - .. function:: ``pixel(x: float, y: float, edge, method)``:
+        return pixel having x, y coordinates, as list(channel: int).
 
-    - ``rescale(width: int, height: int, method)``:
-        chainable rescale ``self`` to new ``width`` and ``height``, interpolated using:
-            - ``method=1` or `method="bilinear"``: bilinear interpolation;
-            - ``method=2` or `method="barycentric"``: barycentric interpolation.
+        Edge extrapolation using:
+            - ``edge='repeat'``: repeat edge, like Photoshop;
+            - ``edge='wrap'``: wrap around;
+            - ``edge=``other: extrapolate with zeroes.
+                Alpha=0 correspond to transparent.
 
-    - ``scale(width: int, height: int, method)``:
-        return rescaled image as list(list(pixel)), having new ``width`` and ``height``, interpolated using:
-            - ``method=1` or `method="bilinear"``: bilinear interpolation;
-            - ``method=2` or `method="barycentric"``: barycentric interpolation.
+        Interpolation using:
+            - ``method="bilinear"``: bilinear interpolation;
+            - ``method="barycentric"``: barycentric interpolation.
 
+    - .. function:: ``rescale(width: int, height: int, method)``:
+        chainable rescale ``self`` to new ``width`` and ``height``.
+
+    - .. function:: ``scale(width: int, height: int, method)``:
+        return rescaled image as list(list(pixel)), having new ``width`` and ``height``,
         and ``maxcolors``. Does not change ``self``.
 
-    - ``rotate(angle, edge, method)``:
-        image rotation by ``angle`` degrees counterclockwise, edge extrapolation with:
-            - ``edge=1`` or ``edge='repeat'``: repeat edge, like Photoshop;
-            - ``edge=2`` or ``edge='wrap'``: wrap around;
-            - ``edge=``other: extrapolate with zeroes.
-            Alpha=0 correspond to transparent.
-        interpolation using:
-            - ``method=1` or `method="bilinear"``: bilinear interpolation;
-            - ``method=2` or `method="barycentric"``: barycentric interpolation.
+    - .. function:: ``rotate(angle, edge, method)``:
+        image rotation by ``angle`` degrees counterclockwise.
+
+    - .. function:: ``displace(fx, fy, width, height, edge, method)``:
+        general pixel displacement according to fx(x, y), fy(x, y) functions.
 
     """
 
     def __init__(self, *input: tuple[list[list[list[int]]], int] | tuple[tuple[list[list[list[int]]], int]]):
         """Initializes a new instance of ``Picture`` out of image data list and colors per channel maximum.
 
-        :param *input: ``tuple(image_data, maxcolors,)``, see below:
-        :type *input: tuple[list[list[list[int]]], int] or tuple[tuple[list[list[list[int]]]
+        :param input: ``tuple(image_data, maxcolors,)``, which may have extra tuple() on it;
+        :type input: tuple[list[list[list[int]]], int] | tuple[tuple[list[list[list[int]]]
         :param image_data: image of rows of pixels of channel values;
         :type image_data: list[list[list[int]]]
         :param int maxcolors: maximal value of colors per channel,
@@ -111,16 +116,16 @@ class Picture:
         """Image nested 3D list sizes (X, Y, Z,)."""
         return self.SIZE
 
-    def src(self, x: float, y: float, edge: Literal['zero', 'repeat', 'wrap', 0, 1, 2] = 'repeat') -> list[int]:
+    def src(self, x: float, y: float, edge: Literal['zero', 'repeat', 'wrap'] = 'repeat') -> list[int]:
         """Whole pixel from image list, nearest neighbour interpolation,
-        returns list[channel] for pixel(x, y).
+        configurable edge extrapolation, returns list[channel] for pixel(x, y).
 
-        :param int x: ``x`` coordinate of pixel being read;
-        :param int y: ``y`` coordinate of pixel being read;
+        :param float x: ``x`` coordinate of pixel being read;
+        :param float y: ``y`` coordinate of pixel being read;
         :param str | int edge: edge extrapolation mode:
 
-            - ``edge=1`` or ``edge='repeat'``: repeat edge, like Photoshop;
-            - ``edge=2`` or ``edge='wrap'``: wrap around;
+            - ``edge='repeat'``: repeat edge, like Photoshop;
+            - ``edge='wrap'``: wrap around;
             - ``edge=``other: extrapolate with zeroes.
               Alpha=0 correspond to transparent.
         :return: pixel(x, y) value.
@@ -148,39 +153,38 @@ class Picture:
                 else:
                     cx = min(X - 1, max(0, int(x)))
                     cy = min(Y - 1, max(0, int(y)))
-                    # ↓ Mixing source color along edges with zero alpha
-                    #   to avoid black ghosts. 
+                    # ↓ Mixing extrapolated source color with zero alpha
+                    #   to avoid black ghosts.
                     return [*self.image_data[cy][cx][:Z_COLOR], 0]
             else:  # Not edge
                 return self.image_data[int(y)][int(x)]
 
-    def blin(self, x: float, y: float, edge: Literal['zero', 'repeat', 'wrap', 0, 1, 2] = 'repeat') -> list[int]:
+    def blin(self, x: float, y: float, edge: Literal['zero', 'repeat', 'wrap'] = 'repeat') -> list[int]:
         """Returns bilinearly interpolated pixel(x, y).
 
         :param float x: ``x`` coordinate of pixel being read;
         :param float y: ``y`` coordinate of pixel being read;
         :param str | int edge: edge extrapolation mode:
 
-            - ``edge=1`` or ``edge='repeat'``: repeat edge, like Photoshop;
-            - ``edge=2`` or ``edge='wrap'``: wrap around;
+            - ``edge='repeat'``: repeat edge, like Photoshop;
+            - ``edge='wrap'``: wrap around;
             - ``edge=``other: extrapolate with zeroes.
                 Alpha=0 correspond to transparent.
         :return: interpolated pixel(x, y) value.
         :rtype: list[int]
 
-Pixels structure
-----------------
+        .. note:: Square corners are enumerated according to Soviet Army «snail» scheme
 
-Square corners are enumerated according to Soviet Army «snail» scheme
+        | ``┌───┬───┐``
+        | ``│ 1 │ 2 │``
+        | ``├───┼───┤``
+        | ``│ 4 │ 3 │``
+        | ``└───┴───┘``
 
-    ``┌───┬───┐``   
-    ``│ 1 │ 2 │``   
-    ``├───┼───┤``   
-    ``│ 4 │ 3 │``   
-    ``└───┴───┘``   
+        and direct one-pass 2D bilinear interpolation applied.
 
-.. note:: Corners coordinates are calculated taking into account the fact that
-    for negative x and y values ``int(x) > x`` and ``int(y) > y ``correspondingly. """
+        Corners coordinates are calculated taking into account the fact that
+        for negative x and y values ``int(x) > x`` and ``int(y) > y ``correspondingly."""
 
         def _intaddup_4(a, b, c, d):
             return int(a + b + c + d)
@@ -233,41 +237,38 @@ Square corners are enumerated according to Soviet Army «snail» scheme
 
         return pixelvalue
 
-    def baryc(self, x: float, y: float, edge: Literal['zero', 'repeat', 'wrap', 0, 1, 2] = 'repeat') -> list[int]:
+    def baryc(self, x: float, y: float, edge: Literal['zero', 'repeat', 'wrap'] = 'repeat') -> list[int]:
         """Returns barycentrically interpolated pixel(x, y).
 
         :param float x: ``x`` coordinate of pixel being read;
         :param float y: ``y`` coordinate of pixel being read;
         :param str | int edge: edge extrapolation mode:
 
-            - ``edge=1`` or ``edge='repeat'``: repeat edge, like Photoshop;
-            - ``edge=2`` or ``edge='wrap'``: wrap around;
+            - ``edge='repeat'``: repeat edge, like Photoshop;
+            - ``edge='wrap'``: wrap around;
             - ``edge=``other: extrapolate with zeroes.
               Alpha=0 correspond to transparent.
         :return: interpolated pixel(x, y) value.
         :rtype: list[int]
 
-Pixels structure
-----------------
+        .. note:: Square corners are enumerated according to Soviet Army «snail» scheme
 
-Square corners are enumerated according to Soviet Army «snail» scheme
+        | ``┌───┬───┐``
+        | ``│ 1 │ 2 │``
+        | ``├───┼───┤``
+        | ``│ 4 │ 3 │``
+        | ``└───┴───┘``
 
-    ``┌───┬───┐``   
-    ``│ 1 │ 2 │``   
-    ``├───┼───┤``   
-    ``│ 4 │ 3 │``   
-    ``└───┴───┘``   
+        and square divided onto two triangles by either 1-3 [⧅] or
+        2-4 [⧄] diagonal depending on what color difference is bigger
+        (i.e. on directional local contrast).
 
-and square divided onto two triangles by either 1-3 [⧅] or 
-2-4 [⧄] diagonal depending on what color difference is bigger
-(i.e. on directional local contrast). 
+        Each triangle is right-angled and takes 0.5 of area of
+        1×1 length unit square (i.e. 2×2 pixel number square),
+        that greatly simplifies calculation.
 
-Each triangle is right-angled and takes 0.5 of area of
-1×1 length unit square (i.e. 2×2 pixel number square),
-that greatly simplifies calculation.
-
-.. note:: Corners coordinates are calculated taking into account the fact that
-    for negative x and y values ``int(x) > x`` and ``int(y) > y ``correspondingly. """
+        Corners coordinates are calculated taking into account the fact that
+        for negative x and y values ``int(x) > x`` and ``int(y) > y ``correspondingly."""
 
         def _intaddup_3(a, b, c):
             return int(a + b + c)
@@ -403,7 +404,7 @@ that greatly simplifies calculation.
 
         return pixelvalue
 
-    def pixel(self, x: float, y: float, edge: Literal['zero', 'repeat', 'wrap', 0, 1, 2] = 'repeat', method: Literal['nearest', 'bilinear', 'barycentric', 0, 1, 2] = 'bilinear') -> list[int]:
+    def pixel(self, x: float, y: float, edge: Literal['zero', 'repeat', 'wrap'] = 'repeat', method: Literal['nearest', 'bilinear', 'barycentric'] = 'bilinear') -> list[int]:
         """Configurable method of reading interpolated pixel,
         returns list[channel] for pixel(x, y).
 
@@ -411,14 +412,14 @@ that greatly simplifies calculation.
         :param float y: ``y`` coordinate of pixel being read;
         :param str | int edge: edge extrapolation mode:
 
-            - ``edge=1`` or ``edge='repeat'``: repeat edge, like Photoshop;
-            - ``edge=2`` or ``edge='wrap'``: wrap around;
+            - ``edge='repeat'``: repeat edge, like Photoshop;
+            - ``edge='wrap'``: wrap around;
             - ``edge=``other: extrapolate with zeroes.
                 Alpha=0 correspond to transparent.
-        :param int | str method: pixel interpolation method:
+        :param str | int method: pixel interpolation method:
 
-            - ``method=2`` or ``method='barycentric'``: barycentric interpolation;
-            - ``method=1`` or ``method='bilinear'``: bilinear interpolation;
+            - ``method='barycentric'``: barycentric interpolation;
+            - ``method='bilinear'``: bilinear interpolation;
             - ``method=0`` or ``method='nearest'``: nearest neighbour interpolation.
         :return: interpolated pixel(x, y) value.
         :rtype: list[int]
@@ -432,64 +433,41 @@ that greatly simplifies calculation.
         if method == 2 or method == 'barycentric':
             return self.baryc(x, y, edge)
 
-    def rescale(self, width: int, height: int, edge: Literal['zero', 'repeat', 'wrap', 0, 1, 2] = 'repeat', method: Literal['nearest', 'bilinear', 'barycentric', 0, 1, 2] = 'bilinear') -> Self:
+    def scale(self, width: int, height: int, edge: Literal['zero', 'repeat', 'wrap'] = 'repeat', method: Literal['bilinear', 'barycentric'] = 'bilinear', ego: bool = False) -> Self:
         """Rescale **``self``** image (chainable method), using bilinear or barycentric interpolation depending on ``method``.
 
         :param int width: updated **``self``** image width, pixels;
         :param int height: updated **``self``** image height, pixels;
-        :param int | str edge: edge extrapolation mode:
+        :param str | int edge: edge extrapolation mode:
 
-            - ``edge=1`` or ``edge='repeat'``: repeat edge, like Photoshop;
-            - ``edge=2`` or ``edge='wrap'``: wrap around;
+            - ``edge='repeat'``: repeat edge, like Photoshop;
+            - ``edge='wrap'``: wrap around;
             - ``edge=``other: extrapolate with zeroes.
                 Alpha=0 correspond to transparent.
-        :param int | str method: interpolation method
+        :param str | int method: interpolation method
 
-            - ``method=2`` or ``method='barycentric'``: barycentric interpolation;
-            - ``method=1`` or ``method='bilinear'``: bilinear interpolation.
-
-        .. warning:: ``rescale`` function, unlike ``scale`` one, **overwrites**
-            existing image rather than return new one!
-
-        """
-
-        from .rescale import rescale as _rescale
-
-        self.image_data = _rescale(self.image_data, width, height, edge, method)
-        return self
-
-    def scale(self, width: int, height: int, edge: Literal['zero', 'repeat', 'wrap', 0, 1, 2] = 'repeat', method: Literal['nearest', 'bilinear', 'barycentric', 0, 1, 2] = 'bilinear') -> tuple[list[list[list[int]]], int]:
-        """Return image, rescaled using bilinear or barycentric interpolation depending on ``method``.
-
-        :param int width: resulting image width, pixels;
-        :param int height: resulting image height, pixels;
-        :param int | str edge: edge extrapolation mode:
-
-            - ``edge=1`` or ``edge='repeat'``: repeat edge, like Photoshop;
-            - ``edge=2`` or ``edge='wrap'``: wrap around;
-            - ``edge=``other: extrapolate with zeroes.
-              Alpha=0 correspond to transparent.
-        :param int | str method: interpolation method
-
-            - ``method=2`` or ``method='barycentric'``: barycentric interpolation;
-            - ``method=1`` or ``method='bilinear'``: bilinear interpolation.
-        :return: rescaled image list, and ``maxcolors``.
-        :rtype: tuple[list[list[list[int]]], int]
-
-        .. note:: ``scale`` function, unlike ``rescale`` one, does not overwrite
-            existing image but rather returns new one.
+            - ``method='barycentric'``: barycentric interpolation;
+            - ``method='bilinear'``: bilinear interpolation.
+        :param bool ego: whether return ``self`` or new ``Picture``.
+        :return: `Picture` instance, containing image, rescaled to
+        new ``width`` and ``height``, and ``maxcolors``.
+        :rtype: Picture
 
         """
 
         from .rescale import rescale as _rescale
 
-        new_image_data = _rescale(self.image_data, width, height, edge, method)
-        return (
-            new_image_data,
-            self.maxcolors,
-        )  # WARNING: Gives extra tuple() when reading back, eliminated by __init__
+        if ego:
+            self.image_data = _rescale(self.image_data, width, height, edge, method)
+            return self
+        else:
+            new_image_data = _rescale(self.image_data, width, height, edge, method)
+            return Picture(
+                new_image_data,
+                self.maxcolors,
+            )
 
-    def displace(self, fx, fy, width: int, height: int, edge: Literal['zero', 'repeat', 'wrap', 0, 1, 2] = 'repeat', method: Literal['nearest', 'bilinear', 'barycentric', 0, 1, 2] = 'bilinear') -> tuple[list[list[list[int]]], int]:
+    def displace(self, fx, fy, width: int, height: int, edge: Literal['zero', 'repeat', 'wrap'] = 'repeat', method: Literal['bilinear', 'barycentric'] = 'bilinear', ego: bool = False) -> Self:
         """Image displacement according to ``fx`` and ``fy`` functions, using bilinear or barycentric interpolation depending on ``method`` switch.
 
         :param fx: actual x coordinate to read as a function of (x, y) requested;
@@ -498,45 +476,53 @@ that greatly simplifies calculation.
         :type fy: callable[float, float]
         :param int width: resulting image width, pixels;
         :param int height: resulting image height, pixels;
-        :param int | str edge: edge extrapolation mode:
+        :param str | int edge: edge extrapolation mode:
 
-            - ``edge=1`` or ``edge='repeat'``: repeat edge, like Photoshop;
-            - ``edge=2`` or ``edge='wrap'``: wrap around;
+            - ``edge='repeat'``: repeat edge, like Photoshop;
+            - ``edge='wrap'``: wrap around;
             - ``edge=``other: extrapolate with zeroes.
               Alpha=0 correspond to transparent.
-        :param int | str method: interpolation method
+        :param str | int method: interpolation method
 
-            - ``method=2`` or ``method='barycentric'``: barycentric interpolation;
-            - ``method=1`` or ``method='bilinear'``: bilinear interpolation;
-        :return: image, distorted according to ``fx``, ``fy`` rules, and ``maxcolors``.
-        :rtype: tuple[list[list[list[int]]], int]
+            - ``method='barycentric'``: barycentric interpolation;
+            - ``method='bilinear'``: bilinear interpolation;
+        :param bool ego: whether return ``self`` or new ``Picture``.
+        :return: `Picture` instance, containing image, distorted
+        according to ``fx``, ``fy`` rules, and ``maxcolors``.
+        :rtype: Picture
 
         """
 
         from .displace import displace as _displace
 
-        new_image_data = _displace(self.image_data, fx, fy, width, height, edge, method)
-        return (
-            new_image_data,
-            self.maxcolors,
-        )
+        if ego:
+            self.image_data = _displace(self.image_data, fx, fy, width, height, edge, method)
+            return self
+        else:
+            new_image_data = _displace(self.image_data, fx, fy, width, height, edge, method)
+            return Picture(
+                new_image_data,
+                self.maxcolors,
+            )
 
-    def rotate(self, angle: float, edge: Literal['zero', 'repeat', 'wrap', 0, 1, 2] = 'repeat', method: Literal['nearest', 'bilinear', 'barycentric', 0, 1, 2] = 'bilinear') -> tuple[list[list[list[int]]], int]:
+    def rotate(self, angle: float, edge: Literal['zero', 'repeat', 'wrap'] = 'repeat', method: Literal['bilinear', 'barycentric'] = 'bilinear', ego: bool = False) -> Self:
         """Image rotation by means of displacement with algorithmic map, using bilinear or barycentric interpolation depending on ``method`` switch.
 
         :param float angle: rotation angle, degree counterclockwise;
-        :param int | str edge: edge extrapolation mode:
+        :param str | int edge: edge extrapolation mode:
 
-            - ``edge=1`` or ``edge='repeat'``: repeat edge, like Photoshop;
-            - ``edge=2`` or ``edge='wrap'``: wrap around;
+            - ``edge='repeat'``: repeat edge, like Photoshop;
+            - ``edge='wrap'``: wrap around;
             - ``edge=``other: extrapolate with zeroes.
               Alpha=0 correspond to transparent.
-        :param int | str method: interpolation method
+        :param str | int method: interpolation method
 
-            - ``method=2`` or ``method='barycentric'``: barycentric interpolation;
-            - ``method=1`` or ``method='bilinear'``: bilinear interpolation;
-        :return: image, rotated by ``angle`` degrees counterclockwise, and ``maxcolors``.
-        :rtype: tuple[list[list[list[int]]], int]
+            - ``method='barycentric'``: barycentric interpolation;
+            - ``method='bilinear'``: bilinear interpolation;
+        :param bool ego: whether return ``self`` or new ``Picture``.
+        :return: `Picture` instance, containing image rotated
+        by ``angle`` degrees counterclockwise, and ``maxcolors``.
+        :rtype: Picture
 
         """
 
@@ -556,8 +542,12 @@ that greatly simplifies calculation.
         def _fy(x, y):
             return ((x - (width / 2)) * SIN) + ((y - (height / 2)) * COS) + (self.Y / 2)
 
-        new_image_data = _displace(self.image_data, _fx, _fy, width, height, edge, method)
-        return (
-            new_image_data,
-            self.maxcolors,
-        )
+        if ego:
+            self.image_data = _displace(self.image_data, _fx, _fy, width, height, edge, method)
+            return self
+        else:
+            new_image_data = _displace(self.image_data, _fx, _fy, width, height, edge, method)
+            return Picture(
+                new_image_data,
+                self.maxcolors,
+            )

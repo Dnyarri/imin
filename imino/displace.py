@@ -318,7 +318,7 @@ def barycentric(source_image: list[list[list[int]]], fx: callable, fy: callable,
 
 # ↓ Image displacement, configurable interpolation, configurable edge modes
 def displace(
-    source_image: list[list[list[int]]], fx: callable, fy: callable, XNEW: int, YNEW: int, edge: Literal['zero', 'repeat', 'wrap', 0, 1, 2] = 0, method: Literal['nearest', 'bilinear', 'barycentric', 0, 1, 2] = 'bilinear'
+    source_image: list[list[list[int]]], fx: callable, fy: callable, XNEW: int, YNEW: int, edge: Literal['zero', 'repeat', 'wrap', 0, 1, 2] = 0, method: Literal['bilinear', 'barycentric', 0, 1, 2] = 'bilinear'
 ) -> list[list[list[int]]]:
     """Image displacement according to ``fx`` and ``fy`` functions, using bilinear or barycentric interpolation depending on ``method`` switch.
 

@@ -373,7 +373,7 @@ def barycentric(source_image: list[list[list[int]]], XNEW: int, YNEW: int, edge:
 
 
 # ↓ Image rescaling, configurable interpolation, configurable edge modes
-def rescale(source_image: list[list[list[int]]], XNEW: int, YNEW: int, edge: Literal['zero', 'repeat', 'wrap', 0, 1, 2] = 'repeat', method: Literal['nearest', 'bilinear', 'barycentric', 0, 1, 2] = 'bilinear') -> list[list[list[int]]]:
+def rescale(source_image: list[list[list[int]]], XNEW: int, YNEW: int, edge: Literal['zero', 'repeat', 'wrap', 0, 1, 2] = 'repeat', method: Literal['bilinear', 'barycentric', 0, 1, 2] = 'bilinear') -> list[list[list[int]]]:
     """Image rescaling with ``bilinear`` or ``barycentric`` depending on ``method``.
 
     :param source_image: source image 3D nested list,

@@ -475,12 +475,12 @@ def RunFilter(event=None) -> None:
         ╰─────────────────────────╯ """
     fx, fy, XNEW, YNEW = GetMap()
 
-    picture = Picture(source_image, maxcolors)
+    picture_in = Picture(source_image, maxcolors)
     start = time()
-    result_picture = Picture(picture.displace(fx, fy, XNEW, YNEW, edge=edge, method=method))
+    picture_out = picture_in.displace(fx, fy, XNEW, YNEW, edge=edge, method=method)
     timing = time() - start
-    result_image = result_picture.data()
-    X, Y, Z = result_picture.size()
+    result_image = picture_out.data()
+    X, Y, Z = picture_out.size()
 
     # ↓ preview result
     preview_data = list2bin(result_image, maxcolors, show_chessboard=True)
