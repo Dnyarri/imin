@@ -59,17 +59,15 @@ class Picture:
             - ``method="bilinear"``: bilinear interpolation;
             - ``method="barycentric"``: barycentric interpolation.
 
-    - .. function:: ``rescale(width: int, height: int, method)``:
-        chainable rescale ``self`` to new ``width`` and ``height``.
-
-    - .. function:: ``scale(width: int, height: int, method)``:
+    - .. function:: ``scale(width, height, edge, method, ego)``:
         return rescaled image as list(list(pixel)), having new ``width`` and ``height``,
-        and ``maxcolors``. Does not change ``self``.
+        and ``maxcolors``, either as ``self`` or new instance of ``Picture``,
+        depending on bool ``ego``.
 
-    - .. function:: ``rotate(angle, edge, method)``:
+    - .. function:: ``rotate(angle, edge, method, ego)``:
         image rotation by ``angle`` degrees counterclockwise.
 
-    - .. function:: ``displace(fx, fy, width, height, edge, method)``:
+    - .. function:: ``displace(fx, fy, width, height, edge, method, ego)``:
         general pixel displacement according to fx(x, y), fy(x, y) functions.
 
     """
